@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const todoInput = document.getElementById('todo-input');
+    const priorityInput = document.getElementById('priority-input');
     const addBtn = document.getElementById('add-btn');
     const todoList = document.getElementById('todo-list');
     const itemsLeft = document.getElementById('items-left');
@@ -27,12 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 新增任務
     function addTodo() {
         const text = todoInput.value.trim();
+        const priority = priorityInput.value;
         if (text === '') return;
 
         const newTodo = {
             id: Date.now(),
             text: text,
             completed: false,
+            priority: priority,
             createdAt: new Date().toISOString(),
             completedAt: null
         };
@@ -40,6 +43,27 @@ document.addEventListener('DOMContentLoaded', () => {
         todos.push(newTodo);
         saveAndRender();
         todoInput.value = '';
+        priorityInput.value = 'medium'; // 重設為中
+    }
+
+    // 更新任務內容
+    function updateTodo(id, newText) {
+        todos = todos.map(todo => 
+            todo.id === id ? { ...todo, text: newText } : todo
+        );
+        saveAndRender();
+    }
+
+    // 刪除任務
+    function deleteTodo(id) {
+        todos = todos.filter(todo => todo.id !== id);
+        saveAndRender();
+    }
+
+    // 儲存並重新渲染
+    function saveAndRender() {
+        localStorage.setItem('todos', JSON.stringify(todos));
+        renderTodos();
     }
 
     // 切換狀態
@@ -57,6 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         saveAndRender();
     }
+
+    // 事件監聽
+    addBtn.addEventListener('click', addTodo);
+    todoInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addTodo();
+    });
 
     // 渲染函數
     function renderTodos() {
@@ -77,10 +107,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span class="todo-time">完成於: ${formatDateTime(todo.completedAt)}</span>`
                 : `<span class="todo-time">建立於: ${formatDateTime(todo.createdAt)}</span>`;
 
+            const priorityLabels = { low: '低', medium: '中', high: '高' };
+            const priorityBadge = `<span class="priority-badge priority-${todo.priority || 'medium'}" data-id="${todo.id}">${priorityLabels[todo.priority || 'medium']}</span>`;
+
             li.innerHTML = `
                 <input type="checkbox" ${todo.completed ? 'checked' : ''}>
                 <div class="todo-content">
-                    <input type="text" class="todo-text" value="${todo.text}">
+                    <div style="display: flex; align-items: center;">
+                        ${priorityBadge}
+                        <input type="text" class="todo-text" value="${todo.text}">
+                    </div>
                     ${timeInfo}
                 </div>
                 <button class="delete-btn" aria-label="Delete">&times;</button>
@@ -89,6 +125,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // 事件綁定
             const checkbox = li.querySelector('input[type="checkbox"]');
             checkbox.addEventListener('change', () => toggleTodo(todo.id));
+
+            const badge = li.querySelector('.priority-badge');
+            badge.addEventListener('click', () => {
+                const levels = ['low', 'medium', 'high'];
+                const currentIdx = levels.indexOf(todo.priority || 'medium');
+                const nextIdx = (currentIdx + 1) % levels.length;
+                const nextPriority = levels[nextIdx];
+                
+                todos = todos.map(t => t.id === todo.id ? { ...t, priority: nextPriority } : t);
+                saveAndRender();
+            });
 
             const textInput = li.querySelector('.todo-text');
             textInput.addEventListener('blur', () => {
