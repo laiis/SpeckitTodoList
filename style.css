@@ -8,6 +8,20 @@
     --text-muted: #6b7280;
     --danger: #ef4444;
     --success: #10b981;
+    --input-bg: rgba(255, 255, 255, 0.5);
+    --item-bg: white;
+    --filter-bg: rgba(0, 0, 0, 0.05);
+}
+
+body.dark-mode {
+    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --input-bg: rgba(15, 23, 42, 0.5);
+    --item-bg: #1e293b;
+    --filter-bg: rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -25,6 +39,7 @@ body {
     background: var(--bg-gradient);
     overflow: hidden;
     position: relative;
+    transition: background 0.5s ease;
 }
 
 /* 背景裝飾圓圈 */
@@ -80,7 +95,7 @@ body {
     max-width: 450px;
     padding: 2.5rem;
     border-radius: 24px;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
 }
 
 .glass {
@@ -88,10 +103,14 @@ body {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 header {
     margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
 header h1 {
@@ -106,6 +125,26 @@ header p {
     margin-top: 0.2rem;
 }
 
+/* 主題切換按鈕 */
+#theme-toggle {
+    background: var(--filter-bg);
+    border: 1px solid var(--glass-border);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--text-main);
+    transition: all 0.3s ease;
+}
+
+#theme-toggle:hover {
+    background: var(--glass-border);
+}
+
 /* 輸入框區塊 */
 .input-section {
     display: flex;
@@ -118,14 +157,20 @@ header p {
     padding: 12px 20px;
     border-radius: 12px;
     border: 1px solid var(--glass-border);
-    background: rgba(255, 255, 255, 0.5);
+    background: var(--input-bg);
+    color: var(--text-main);
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
 }
 
+#todo-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
 #todo-input:focus {
-    background: white;
+    background: var(--item-bg);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
     border-color: var(--primary-color);
 }
@@ -152,7 +197,7 @@ header p {
     display: flex;
     justify-content: space-around;
     margin-bottom: 1.5rem;
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--filter-bg);
     padding: 4px;
     border-radius: 10px;
 }
@@ -170,7 +215,7 @@ header p {
 }
 
 .filter-btn.active {
-    background: white;
+    background: var(--item-bg);
     color: var(--primary-color);
     font-weight: 500;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -196,7 +241,7 @@ header p {
 .todo-item {
     display: flex;
     align-items: center;
-    background: white;
+    background: var(--item-bg);
     padding: 12px 16px;
     border-radius: 12px;
     margin-bottom: 10px;
@@ -210,7 +255,7 @@ header p {
 }
 
 .todo-item:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .todo-item input[type="checkbox"] {
@@ -274,7 +319,8 @@ header p {
     padding: 12px;
     border-radius: 12px;
     border: 1px solid var(--glass-border);
-    background: rgba(255, 255, 255, 0.5);
+    background: var(--input-bg);
+    color: var(--text-main);
     font-size: 0.9rem;
     outline: none;
     cursor: pointer;
@@ -282,7 +328,7 @@ header p {
 }
 
 .priority-select:focus {
-    background: white;
+    background: var(--item-bg);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
@@ -322,3 +368,4 @@ header p {
 #clear-completed:hover {
     color: var(--danger);
 }
+

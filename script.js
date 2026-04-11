@@ -7,10 +7,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterBtns = document.querySelectorAll('.filter-btn');
     const clearCompletedBtn = document.getElementById('clear-completed');
     const currentDateDisplay = document.getElementById('current-date');
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
 
     // 顯示當前日期
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     currentDateDisplay.textContent = new Date().toLocaleDateString('zh-TW', options);
+
+    // 主題切換功能
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeIcon.textContent = '☀️';
+        } else {
+            document.body.classList.remove('dark-mode');
+            themeIcon.textContent = '🌙';
+        }
+    }
+
+    themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        themeIcon.textContent = isDark ? '☀️' : '🌙';
+    });
+
+    initTheme();
 
     let todos = JSON.parse(localStorage.getItem('todos')) || [];
     let currentFilter = 'all';
