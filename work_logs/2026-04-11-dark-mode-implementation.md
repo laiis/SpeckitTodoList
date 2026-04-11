@@ -10,15 +10,19 @@
     - 黑暗模式採用深藍色調 (`#0f172a`) 與毛玻璃效果的完美融合。
     - 透過 `localStorage` 實現主題持久化，使用者重新整理頁面後仍能保留上次選擇的主題。
     - 優化了 UI 過渡動畫，使切換過程更加平滑。
+- **Speckit 工作流整合 (新增)**:
+    - 初始化了 `.specify` 並新增相關命令，詳細內容請參閱 [2026-04-11-speckit-workflow-setup.md](./2026-04-11-speckit-workflow-setup.md)。
 
 ### 2. 檔案異動
 - `index.html`: 新增 `#theme-toggle` 按鈕。
 - `style.css`: 定義 `:root` 變數與 `body.dark-mode` 覆蓋樣式。
 - `script.js`: 新增 `initTheme` 與主題切換事件監聽邏輯。
+- `.specify/` & `.gemini/commands/`: Speckit 工作流相關配置。
 
 ### 3. 下一步計劃
 - [x] 增加任務優先級標籤 (High, Medium, Low)。
 - [x] 增加黑暗模式 (Dark Mode) 切換功能。
+- [x] 導入 Speckit 工作流基礎。
 - [ ] 實作任務拖曳排序 (Drag and Drop)。
 - [ ] 優化手機版的觸控互動體驗。
 
