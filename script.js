@@ -204,8 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getActiveColumns() {
-        if (currentFilter === 'active') {
-            return columnDefinitions.filter(c => c.status !== TodoService.Status.DONE);
+        if (currentFilter === 'active' || currentFilter === 'all') {
+            return columnDefinitions;
         } else if (currentFilter === 'completed') {
             return columnDefinitions.filter(c => c.status === TodoService.Status.DONE);
         }

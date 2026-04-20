@@ -38,9 +38,9 @@
 
 ## Phase 3: User Story 1 - 看板式狀態檢視 (Priority: P1) 🎯 MVP
 
-**Goal**: 在「待完成」視圖中以 4 欄並排方式顯示任務，支援獨立捲動與彈性佈局。
+**Goal**: 在「待完成」視圖中以 5 欄並排方式顯示任務，支援獨立捲動與彈性佈局。
 
-**Independent Test**: 切換至「待完成」視圖，驗證出現 4 個水平排列欄位，且每個欄位標題正確、內容可垂直捲動。
+**Independent Test**: 切換至「待完成」視圖，驗證出現 5 個水平排列欄位，且每個欄位標題正確、內容可垂直捲動。
 
 ### Tests for User Story 1 (TDD) ⚠️
 
@@ -52,7 +52,7 @@
 - [x] T010 [US1] 實作 `TodoService` 的過濾邏輯，並整合 Logger 記錄狀態過濾行為於 `script.js` (FR-007)
 - [x] T011 [P] [US1] 實作看板佈局 CSS 於 `style.css` (Flexbox, min-width 280px, overflow-x)
 - [x] T012 [P] [US1] 實作欄位獨立垂直捲動與固定標題樣式於 `style.css`
-- [x] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 4 個狀態欄位於 `script.js`
+- [x] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 5 個狀態欄位於 `script.js`
 - [x] T014 [US1] 實作標題旁即時顯示任務計數功能於 `script.js` (FR-004)
 - [x] T014a [US1] 撰寫計數器同步測試於 `todo.test.js`：驗證新增、刪除或移動任務後，對應欄位標題旁的計數器能 100% 準確更新
 - [x] T015 [US1] 實作快速新增區域 HTML/CSS 於 `index.html` 與 `style.css` (FR-008)
@@ -91,12 +91,12 @@
 
 ### Tests for User Story 3 (TDD) ⚠️
 
-- [ ] T020 [P] [US3] 撰寫行動版標籤切換邏輯的測試於 `todo.test.js`
+- [ ] T020 [P] [US3] 撰寫行動版標籤切換邏輯的測試於 `todo.test.js` (含預設顯示「待辦」標籤之驗證)
 
 ### Implementation for User Story 3
 
 - [ ] T021 [P] [US3] 實作行動版 Media Queries 樣式於 `style.css` (隱藏非活動欄位，顯示標籤)
-- [ ] T022 [US3] 實作頂部標籤列的動態生成與點擊事件處理於 `script.js` (FR-005)
+- [ ] T022 [US3] 實作頂部標籤列的動態生成與點擊事件處理於 `script.js` (FR-005，預設選中並顯示「待辦」欄位)
 
 **Checkpoint**: 所有使用者故事現在均已獨立運作。
 
@@ -111,6 +111,7 @@
 - [ ] T024a 驗證在 1920x1080 解析度下，使用者無需捲動即可看到至少 4 欄內容 (SC-002)
 - [ ] T025 進行最後的視覺調整，確保玻璃擬態與深色模式完美呈現於所有新元件
 - [ ] T026 [P] 更新 `quickstart.md` 中的驗收檢核表
+- [ ] T027 [P] 執行安全性與 XSS 防護校閱 (符合憲法 III)，確保任務文字渲染皆透過適當脫逸或安全 DOM API
 
 ---
 
@@ -153,7 +154,7 @@ Task: "實作看板佈局 CSS 於 style.css"
 ### MVP First (User Story 1 Only)
 
 1. 完成 Phase 1 & 2。
-2. 完成 Phase 3 (US1 - 4 欄看板)。
+2. 完成 Phase 3 (US1 - 5 欄看板)。
 3. **驗證**: 獨立測試 US1。
 4. **交付**: 達成基礎看板管理能力。
 
