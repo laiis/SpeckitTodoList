@@ -44,13 +44,19 @@
             <button class="filter-btn" data-filter="completed">已完成</button>
         </div>
 
-        <ul id="todo-list">
-            <!-- 任務會動態插入這裡 -->
-        </ul>
+        <div id="kanban-container">
+            <!-- Kanban columns will be dynamically inserted here -->
+        </div>
 
-        <div class="footer-stats">
-            <span id="items-left">0 個項目待辦</span>
-            <button id="clear-completed">清除已完成</button>
+        <div id="old-list-container" style="display: none;">
+            <ul id="todo-list">
+                <!-- 任務會動態插入這裡 -->
+            </ul>
+
+            <div class="footer-stats">
+                <span id="items-left">0 個項目待辦</span>
+                <button id="clear-completed">清除已完成</button>
+            </div>
         </div>
     </div>
 

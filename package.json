@@ -6,7 +6,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "vite": "^6.0.0",

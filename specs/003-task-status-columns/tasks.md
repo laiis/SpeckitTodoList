@@ -17,9 +17,9 @@
 
 **Purpose**: 專案初始化與基礎結構設定
 
-- [ ] T001 安裝 Vitest 與覆蓋率相關依賴項 `npm install --save-dev vitest @vitest/coverage-v8`
-- [ ] T002 在 `package.json` 中配置測試與覆蓋率指令 `"test": "vitest", "test:coverage": "vitest run --coverage"`
-- [ ] T003 [P] 建立 `Logger` 工具函式於 `script.js` 以符合憲法 V (治理與記錄)
+- [x] T001 安裝 Vitest 與覆蓋率相關依賴項 `npm install --save-dev vitest @vitest/coverage-v8`
+- [x] T002 在 `package.json` 中配置測試與覆蓋率指令 `"test": "vitest", "test:coverage": "vitest run --coverage"`
+- [x] T003 [P] 建立 `Logger` 工具函式於 `script.js` 以符合憲法 V (治理與記錄)
 
 ---
 
@@ -27,10 +27,10 @@
 
 **Purpose**: 核心基礎設施，必須在實作任何使用者故事前完成
 
-- [ ] T004 [P] 定義任務狀態枚舉 (Enum) 與初始遷移邏輯於 `script.js` (確保現有資料相容)
-- [ ] T005 實作 `TodoService` 基礎類別於 `script.js`，包含任務存取與狀態變更邏輯
-- [ ] T006 [P] 更新 `style.css` 中的變數，確保支援玻璃擬態與深色模式的一致性
-- [ ] T007 建立看板容器 HTML 結構於 `index.html` (隱藏舊列表容器)
+- [x] T004 [P] 定義任務狀態枚舉 (Enum) 與初始遷移邏輯於 `script.js` (確保現有資料相容)
+- [x] T005 實作 `TodoService` 基礎類別於 `script.js`，包含任務存取與狀態變更邏輯
+- [x] T006 [P] 更新 `style.css` 中的變數，確保支援玻璃擬態與深色模式的一致性
+- [x] T007 建立看板容器 HTML 結構於 `index.html` (隱藏舊列表容器)
 
 **Checkpoint**: 基礎設施就緒 - 現在可以並行開始使用者故事的開發
 
@@ -49,7 +49,7 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] 實作 `TodoService` 的過濾邏輯，支援依狀態提取任務於 `script.js`
+- [ ] T010 [US1] 實作 `TodoService` 的過濾邏輯，並整合 Logger 記錄狀態過濾行為於 `script.js` (FR-007)
 - [ ] T011 [P] [US1] 實作看板佈局 CSS 於 `style.css` (Flexbox, min-width 280px, overflow-x)
 - [ ] T012 [P] [US1] 實作欄位獨立垂直捲動與固定標題樣式於 `style.css`
 - [ ] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 4 個狀態欄位於 `script.js`
@@ -70,11 +70,13 @@
 ### Tests for User Story 2 (TDD) ⚠️
 
 - [ ] T017 [P] [US2] 撰寫「全部」視圖渲染 5 欄邏輯的測試於 `todo.test.js`
+- [ ] T017a [P] [US2] 撰寫「已完成」模式單欄渲染邏輯的測試於 `todo.test.js` (FR-006)
 
 ### Implementation for User Story 2
 
 - [ ] T018 [US2] 擴充 `KanbanPage` 渲染邏輯以支援 5 欄顯示於 `script.js`
 - [ ] T019 [US2] 處理 5 欄佈局下的橫向捲動邊界樣式於 `style.css`
+- [ ] T019a [US2] 實作「已完成 (Completed)」模式下的單欄 (Done) 渲染邏輯於 `script.js` (FR-006)
 
 **Checkpoint**: 使用者故事 1 與 2 現在應能獨立運作。
 
