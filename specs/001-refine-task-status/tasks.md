@@ -15,9 +15,9 @@
 
 **目的**: 專案初始化與資料遷移邏輯實作
 
-- [ ] T001 在 `script.js` 中實作 `migrateLegacyData` 函式，將舊有的 `completed: boolean` 轉換為 `status: string`
-- [ ] T002 在 `script.js` 中更新 `loadTasks` 邏輯，在啟動時觸發資料遷移
-- [ ] T003 [P] 在 `style.css` 中新增各狀態（Backlog, Todo, Running, Testing, Done）的 CSS 顏色變數
+- [x] T001 在 `script.js` 中實作 `migrateLegacyData` 函式，將舊有的 `completed: boolean` 轉換為 `status: string`
+- [x] T002 在 `script.js` 中更新 `loadTasks` 邏輯，在啟動時觸發資料遷移
+- [x] T003 [P] 在 `style.css` 中新增各狀態（Backlog, Todo, Running, Testing, Done）的 CSS 顏色變數
 
 ---
 

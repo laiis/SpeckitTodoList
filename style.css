@@ -11,6 +11,18 @@
     --input-bg: rgba(255, 255, 255, 0.5);
     --item-bg: white;
     --filter-bg: rgba(0, 0, 0, 0.05);
+
+    /* T003: 狀態顏色變數 */
+    --status-backlog-bg: #f1f5f9;
+    --status-backlog-text: #64748b;
+    --status-todo-bg: #e0e7ff;
+    --status-todo-text: #4338ca;
+    --status-running-bg: #fef3c7;
+    --status-running-text: #b45309;
+    --status-testing-bg: #f3e8ff;
+    --status-testing-text: #7e22ce;
+    --status-done-bg: #d1fae5;
+    --status-done-text: #047857;
 }
 
 body.dark-mode {
@@ -22,6 +34,18 @@ body.dark-mode {
     --input-bg: rgba(15, 23, 42, 0.5);
     --item-bg: #1e293b;
     --filter-bg: rgba(255, 255, 255, 0.05);
+
+    /* T003: 深色模式狀態顏色變數 */
+    --status-backlog-bg: #334155;
+    --status-backlog-text: #94a3b8;
+    --status-todo-bg: #312e81;
+    --status-todo-text: #c7d2fe;
+    --status-running-bg: #78350f;
+    --status-running-text: #fde68a;
+    --status-testing-bg: #581c87;
+    --status-testing-text: #e9d5ff;
+    --status-done-bg: #064e3b;
+    --status-done-text: #a7f3d0;
 }
 
 * {

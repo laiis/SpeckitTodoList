@@ -37,18 +37,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let todos = JSON.parse(localStorage.getItem('todos')) || [];
     
-    // 資料遷移：確保舊任務有 status 屬性
-    let needsMigration = false;
-    todos = todos.map(todo => {
-        if (!todo.status) {
-            todo.status = todo.completed ? 'done' : 'todo';
-            needsMigration = true;
+    // T001 & T002: 資料遷移邏輯
+    function migrateLegacyData(data) {
+        let modified = false;
+        const migrated = data.map(todo => {
+            if (!todo.status) {
+                todo.status = todo.completed ? 'done' : 'todo';
+                modified = true;
+            }
+            // 確保所有任務都有 createdAt
+            if (!todo.createdAt) {
+                todo.createdAt = new Date().toISOString();
+                modified = true;
+            }
+            return todo;
+        });
+        
+        if (modified) {
+            localStorage.setItem('todos', JSON.stringify(migrated));
         }
-        return todo;
-    });
-    if (needsMigration) {
-        localStorage.setItem('todos', JSON.stringify(todos));
+        return migrated;
     }
+
+    // 執行遷移並加載資料
+    todos = migrateLegacyData(todos);
 
     let currentFilter = 'all';
 
