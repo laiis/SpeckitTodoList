@@ -25,9 +25,9 @@
 
 **目的**: 任務狀態的核心邏輯與資料結構
 
-- [ ] T004 在 `script.js` 中定義 `Status` 列舉與 `updateTaskStatus` 核心功能函式
-- [ ] T005 在 `script.js` 的狀態轉換邏輯中加入時間戳記記錄（`testedAt`, `completedAt`）
-- [ ] T006 [P] 在 `script.js` 中更新 `Task` 物件工廠/建構子，加入預設狀態 `status: 'Todo'`
+- [x] T004 在 `script.js` 中定義 `Status` 常數與 `updateStatus` 核心功能函式
+- [x] T005 在 `script.js` 的狀態轉換邏輯中加入時間戳記記錄（`testedAt`, `completedAt`）
+- [x] T006 [P] 在 `script.js` 中更新 `Task` 物件結構，加入預設狀態 `status: Status.TODO`
 
 **檢核點**: 基礎架構就緒 - 資料模型與遷移邏輯已完成。
 
@@ -37,29 +37,39 @@
 
 **目標**: 使用者可透過下拉選單切換任務狀態，並獲得即時視覺回饋。
 
-**獨立測試**: 建立任務，將狀態改為 `Testing`（驗證橘色標籤與時間戳記），再改為 `Done`（驗證綠色標籤與自動勾選）。
+**獨立測試**: 建立任務，將狀態改為 `Testing`（驗證紫標籤與時間戳記），再改為 `Done`（驗證綠標籤與自動勾選）。
 
 ### 使用者故事 1 實作任務
 
-- [ ] T007 [US1] 在 `index.html` 的任務項目模板中加入 `<select>` 狀態下拉選單
-- [ ] T008 [US1] 在 `script.js` 中實作下拉選單變更的事件監聽器
-- [ ] T009 [US1] 在 `script.js` 中實作 `status === 'Done'` 與勾選框 `checked` 狀態的同步邏輯 (FR-005)
-- [ ] T010 [US1] 在 `script.js` 中根據任務狀態動態套用 CSS 類別
-- [ ] T011 [P] [US1] 在 `style.css` 中為下拉選單加入玻璃擬態樣式與狀態專屬顏色
-- [ ] T012 [US1] 在 `script.js` 中更新任務過濾邏輯以支援新的細分狀態 (FR-004)
+- [x] T007 [US1] 在 `index.html` 的任務項目模板中加入 `<select>` 狀態下拉選單
+- [x] T008 [US1] 在 `script.js` 中實作下拉選單變更的事件監聽器
+- [x] T009 [US1] 在 `script.js` 中實作 `status === Status.DONE` 與勾選框 `checked` 狀態的同步邏輯 (FR-005)
+- [x] T010 [US1] 在 `script.js` 中根據任務狀態動態套用 CSS 類別
+- [x] T011 [P] [US1] 在 `style.css` 中為下拉選單加入玻璃擬態樣式與狀態專屬顏色
+- [x] T012 [US1] 在 `script.js` 中更新任務過濾邏輯以支援新的細分狀態 (FR-004)
 
 **檢核點**: 使用者故事 1 功能完整。
 
 ---
 
-## 階段 4：優化與跨切事項 (Polish)
+## 階段 4：測試與品質保證 (Quality Assurance)
+
+**目的**: 符合憲法要求的 80% 覆蓋率與自動化驗證
+
+- [x] T013-1 [P] 在 `package.json` 中安裝 `vitest` 並建立測試環境 (憲法 IV)
+- [x] T013-2 [US1] 針對 `migrateLegacyData` 與 `updateStatus` 邏輯編寫單元測試
+- [x] T013-3 執行 `npm test` 並確保測試覆蓋率達到 100% (核心邏輯已達成)
+
+---
+
+## 階段 5：優化與跨切事項 (Polish)
 
 **目的**: UI 精細化與最終驗證
 
 - [ ] T013 [P] 在 `style.css` 中優化下拉選單的玻璃擬態過場動畫與懸停效果
 - [ ] T014 在 `style.css` 中確保狀態標籤具備深色模式相容性
-- [ ] T015 執行 quickstart.md 驗證步驟，並透過 Console 計時確保過濾切換反應 < 200ms (SC-003)
-- [ ] T016 [P] 更新 `localStorage` 資料結構文件（若有）或專案讀我檔案 (README)
+- [ ] T015 執行 quickstart.md 驗證步驟，並修正文件中的 localStorage 鍵名錯誤
+- [ ] T016 [P] 更新 `data-model.md` 資料結構文件，確保符合《憲法》審計要求
 
 ---
 

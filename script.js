@@ -1,3 +1,83 @@
+// 提取核心邏輯以利測試
+const Status = {
+    BACKLOG: 'backlog',
+    TODO: 'todo',
+    RUNNING: 'running',
+    TESTING: 'testing',
+    DONE: 'done'
+};
+
+function migrateLegacyData(data) {
+    let modified = false;
+    const migrated = data.map(todo => {
+        if (!todo.status) {
+            todo.status = todo.completed ? Status.DONE : Status.TODO;
+            modified = true;
+        }
+        if (!todo.createdAt) {
+            todo.createdAt = new Date().toISOString();
+            modified = true;
+        }
+        return todo;
+    });
+    
+    return { migrated, modified };
+}
+
+function updateTaskStatus(todos, id, newStatus) {
+    return todos.map(todo => {
+        if (todo.id === id) {
+            const isDone = newStatus === Status.DONE;
+            const isTesting = newStatus === Status.TESTING;
+            return {
+                ...todo,
+                status: newStatus,
+                completed: isDone,
+                completedAt: isDone ? (todo.completedAt || new Date().toISOString()) : null,
+                testedAt: isTesting ? (todo.testedAt || new Date().toISOString()) : todo.testedAt
+            };
+        }
+        return todo;
+    });
+}
+
+function formatDateTime(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+}
+
+function createNewTodo(text, priority) {
+    if (!text) return null;
+    return {
+        id: Date.now(),
+        text: text,
+        completed: false,
+        status: Status.TODO,
+        priority: priority || 'medium',
+        createdAt: new Date().toISOString(),
+        completedAt: null
+    };
+}
+
+function filterTodoList(todos, currentFilter) {
+    if (currentFilter === 'active') {
+        return todos.filter(t => t.status !== Status.DONE);
+    } else if (currentFilter === 'completed') {
+        return todos.filter(t => t.status === Status.DONE);
+    }
+    return todos;
+}
+
+// 全域變數以利測試
+let todos = [];
+let currentFilter = 'all';
+
+// 匯出功能供測試使用
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { Status, migrateLegacyData, updateTaskStatus, formatDateTime, createNewTodo, filterTodoList };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const todoInput = document.getElementById('todo-input');
     const priorityInput = document.getElementById('priority-input');
@@ -8,198 +88,94 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearCompletedBtn = document.getElementById('clear-completed');
     const currentDateDisplay = document.getElementById('current-date');
     const themeToggle = document.getElementById('theme-toggle');
-    const themeIcon = themeToggle.querySelector('.theme-icon');
+    const themeIcon = themeToggle ? themeToggle.querySelector('.theme-icon') : null;
 
-    // 顯示當前日期
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    currentDateDisplay.textContent = new Date().toLocaleDateString('zh-TW', options);
+    if (currentDateDisplay) {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        currentDateDisplay.textContent = new Date().toLocaleDateString('zh-TW', options);
+    }
 
-    // 主題切換功能
     function initTheme() {
         const savedTheme = localStorage.getItem('theme') || 'light';
         if (savedTheme === 'dark') {
             document.body.classList.add('dark-mode');
-            themeIcon.textContent = '☀️';
+            if (themeIcon) themeIcon.textContent = '☀️';
         } else {
             document.body.classList.remove('dark-mode');
-            themeIcon.textContent = '🌙';
+            if (themeIcon) themeIcon.textContent = '🌙';
         }
     }
 
-    themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        themeIcon.textContent = isDark ? '☀️' : '🌙';
-    });
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            if (themeIcon) themeIcon.textContent = isDark ? '☀️' : '🌙';
+        });
+    }
 
     initTheme();
 
-    let todos = JSON.parse(localStorage.getItem('todos')) || [];
-    
-    // T001 & T002: 資料遷移邏輯
-    function migrateLegacyData(data) {
-        let modified = false;
-        const migrated = data.map(todo => {
-            if (!todo.status) {
-                todo.status = todo.completed ? 'done' : 'todo';
-                modified = true;
-            }
-            // 確保所有任務都有 createdAt
-            if (!todo.createdAt) {
-                todo.createdAt = new Date().toISOString();
-                modified = true;
-            }
-            return todo;
-        });
-        
-        if (modified) {
-            localStorage.setItem('todos', JSON.stringify(migrated));
-        }
-        return migrated;
+    const rawTodos = JSON.parse(localStorage.getItem('todos')) || [];
+    const migrationResult = migrateLegacyData(rawTodos);
+    todos = migrationResult.migrated;
+    if (migrationResult.modified) {
+        localStorage.setItem('todos', JSON.stringify(todos));
     }
 
-    // 執行遷移並加載資料
-    todos = migrateLegacyData(todos);
-
-    let currentFilter = 'all';
-
-    // 初始化渲染
-    renderTodos();
-
-    // 格式化日期與時間
-    function formatDateTime(date) {
-        if (!date) return '';
-        const d = new Date(date);
-        return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-    }
-
-    // 新增任務
-    function addTodo() {
-        const text = todoInput.value.trim();
-        const priority = priorityInput.value;
-        if (text === '') return;
-
-        const newTodo = {
-            id: Date.now(),
-            text: text,
-            completed: false,
-            status: 'todo', // 預設狀態為 Todo
-            priority: priority,
-            createdAt: new Date().toISOString(),
-            completedAt: null
-        };
-
-        todos.push(newTodo);
-        saveAndRender();
-        todoInput.value = '';
-        priorityInput.value = 'medium'; // 重設為中
-    }
-
-    // 更新任務內容
-    function updateTodo(id, newText) {
-        todos = todos.map(todo => 
-            todo.id === id ? { ...todo, text: newText } : todo
-        );
-        saveAndRender();
-    }
-
-    // 更新任務狀態
-    function updateStatus(id, newStatus) {
-        todos = todos.map(todo => {
-            if (todo.id === id) {
-                const isDone = newStatus === 'done';
-                const isTesting = newStatus === 'testing';
-                return {
-                    ...todo,
-                    status: newStatus,
-                    completed: isDone,
-                    completedAt: isDone ? (todo.completedAt || new Date().toISOString()) : null,
-                    testedAt: isTesting ? (todo.testedAt || new Date().toISOString()) : todo.testedAt
-                };
-            }
-            return todo;
-        });
-        saveAndRender();
-    }
-
-    // 刪除任務
-    function deleteTodo(id) {
-        todos = todos.filter(todo => todo.id !== id);
-        saveAndRender();
-    }
-
-    // 儲存並重新渲染
     function saveAndRender() {
         localStorage.setItem('todos', JSON.stringify(todos));
         renderTodos();
     }
 
-    // 切換勾選狀態 (與狀態連動)
-    function toggleTodo(id) {
-        todos = todos.map(todo => {
-            if (todo.id === id) {
-                const isNowCompleted = !todo.completed;
-                return { 
-                    ...todo, 
-                    completed: isNowCompleted,
-                    status: isNowCompleted ? 'done' : 'todo',
-                    completedAt: isNowCompleted ? new Date().toISOString() : null,
-                    testedAt: isNowCompleted ? todo.testedAt : null // 勾選完成時保留測試時間，取消則清空
-                };
-            }
-            return todo;
-        });
+    function addTodo() {
+        if (!todoInput) return;
+        const text = todoInput.value.trim();
+        const priority = priorityInput ? priorityInput.value : 'medium';
+        const newTodo = createNewTodo(text, priority);
+        if (!newTodo) return;
+        todos.push(newTodo);
         saveAndRender();
+        todoInput.value = '';
+        if (priorityInput) priorityInput.value = 'medium';
     }
 
-    // 事件監聽
-    addBtn.addEventListener('click', addTodo);
-    todoInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addTodo();
-    });
+    if (addBtn) addBtn.addEventListener('click', addTodo);
+    if (todoInput) {
+        todoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTodo();
+        });
+    }
 
-    // 渲染函數
     function renderTodos() {
-        let filteredTodos = todos;
-        if (currentFilter === 'active') {
-            filteredTodos = todos.filter(t => t.status !== 'done');
-        } else if (currentFilter === 'completed') {
-            filteredTodos = todos.filter(t => t.status === 'done');
-        }
-
+        if (!todoList) return;
+        const filteredTodos = filterTodoList(todos, currentFilter);
         todoList.innerHTML = '';
-        
         filteredTodos.forEach(todo => {
             const li = document.createElement('li');
             li.className = `todo-item ${todo.completed ? 'completed' : ''} status-${todo.status}`;
-            
             let timeLabel = `建立於: ${formatDateTime(todo.createdAt)}`;
-            if (todo.status === 'testing' && todo.testedAt) {
+            if (todo.status === Status.TESTING && todo.testedAt) {
                 timeLabel = `測試於: ${formatDateTime(todo.testedAt)}`;
             } else if (todo.completed && todo.completedAt) {
                 timeLabel = `完成於: ${formatDateTime(todo.completedAt)}`;
             }
-            
             const timeInfo = `<span class="todo-time">${timeLabel}</span>`;
-
             const priorityLabels = { low: '低', medium: '中', high: '高' };
             const priorityBadge = `<span class="priority-badge priority-${todo.priority || 'medium'}" data-id="${todo.id}">${priorityLabels[todo.priority || 'medium']}</span>`;
-
             const statusOptions = [
-                { value: 'backlog', label: 'Backlog' },
-                { value: 'todo', label: 'Todo' },
-                { value: 'running', label: 'Running' },
-                { value: 'testing', label: 'Testing' },
-                { value: 'done', label: 'Done' }
+                { value: Status.BACKLOG, label: 'Backlog' },
+                { value: Status.TODO, label: 'Todo' },
+                { value: Status.RUNNING, label: 'Running' },
+                { value: Status.TESTING, label: 'Testing' },
+                { value: Status.DONE, label: 'Done' }
             ];
-
             const statusDropdown = `
                 <select class="status-select" data-id="${todo.id}">
                     ${statusOptions.map(opt => `<option value="${opt.value}" ${todo.status === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
                 </select>
             `;
-
             li.innerHTML = `
                 <input type="checkbox" ${todo.completed ? 'checked' : ''}>
                 <div class="todo-content">
@@ -212,47 +188,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <button class="delete-btn" aria-label="Delete">&times;</button>
             `;
-
-            // 事件綁定
             const checkbox = li.querySelector('input[type="checkbox"]');
-            checkbox.addEventListener('change', () => toggleTodo(todo.id));
-
+            checkbox.addEventListener('change', () => {
+                const newStatus = todo.completed ? Status.TODO : Status.DONE;
+                todos = updateTaskStatus(todos, todo.id, newStatus);
+                saveAndRender();
+            });
             const statusSelect = li.querySelector('.status-select');
-            statusSelect.addEventListener('change', (e) => updateStatus(todo.id, e.target.value));
-
+            statusSelect.addEventListener('change', (e) => {
+                todos = updateTaskStatus(todos, todo.id, e.target.value);
+                saveAndRender();
+            });
             const badge = li.querySelector('.priority-badge');
             badge.addEventListener('click', () => {
                 const levels = ['low', 'medium', 'high'];
                 const currentIdx = levels.indexOf(todo.priority || 'medium');
                 const nextIdx = (currentIdx + 1) % levels.length;
-                const nextPriority = levels[nextIdx];
-                
-                todos = todos.map(t => t.id === todo.id ? { ...t, priority: nextPriority } : t);
+                todos = todos.map(t => t.id === todo.id ? { ...t, priority: levels[nextIdx] } : t);
                 saveAndRender();
             });
-
             const textInput = li.querySelector('.todo-text');
             textInput.addEventListener('blur', () => {
                 if (textInput.value.trim() !== todo.text) {
-                    updateTodo(todo.id, textInput.value.trim());
+                    todos = todos.map(t => t.id === todo.id ? { ...t, text: textInput.value.trim() } : t);
+                    saveAndRender();
                 }
             });
-            textInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') textInput.blur();
-            });
-
             const deleteBtn = li.querySelector('.delete-btn');
-            deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
-
+            deleteBtn.addEventListener('click', () => {
+                todos = todos.filter(t => t.id !== todo.id);
+                saveAndRender();
+            });
             todoList.appendChild(li);
         });
-
-        // 更新統計
-        const activeCount = todos.filter(t => t.status !== 'done').length;
-        itemsLeft.textContent = `${activeCount} 個項目待辦`;
+        const activeCount = todos.filter(t => t.status !== Status.DONE).length;
+        if (itemsLeft) itemsLeft.textContent = `${activeCount} 個項目待辦`;
     }
 
-    // 過濾功能
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
@@ -262,9 +234,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 清除已完成
-    clearCompletedBtn.addEventListener('click', () => {
-        todos = todos.filter(t => !t.completed);
-        saveAndRender();
-    });
+    if (clearCompletedBtn) {
+        clearCompletedBtn.addEventListener('click', () => {
+            todos = todos.filter(t => !t.completed);
+            saveAndRender();
+        });
+    }
+
+    renderTodos();
 });
