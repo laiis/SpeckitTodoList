@@ -117,13 +117,15 @@ body {
     to { transform: translate(50px, 100px); }
 }
 
-/* 玻璃容器 */
+/* 玻璃容器 - 看板模式優化 */
 .container {
-    width: 90%;
-    max-width: 450px;
-    padding: 2.5rem;
+    width: 95%;
+    max-width: 1600px; /* 支援寬螢幕看板 */
+    height: 85vh;
+    padding: 2rem;
     border-radius: 24px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
 }
 
 .glass {
@@ -131,15 +133,172 @@ body {
     backdrop-filter: blur(var(--blur-effect));
     -webkit-backdrop-filter: blur(var(--blur-effect));
     border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow); /* Use the new shadow variable */
+    box-shadow: var(--glass-shadow);
     transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 header {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* 看板容器 */
+.kanban-container {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 1rem;
+    flex: 1;
+    min-height: 0; /* 重要：允許 flex 子項縮小 */
+}
+
+/* 自定義捲動條 - 橫向 */
+.kanban-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.kanban-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+.kanban-container::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 10px;
+}
+
+/* 看板欄位 */
+.kanban-column {
+    flex: 1 0 280px; /* 彈性分配，最小 280px */
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    background: var(--filter-bg);
+    border-radius: 16px;
+    padding: 1rem;
+    min-height: 0;
+    transition: transform 0.3s ease;
+}
+
+.kanban-column:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    flex-shrink: 0;
+}
+
+.column-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.task-count {
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* 欄位內容區域 - 獨立垂直捲動 */
+.column-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+    min-height: 0;
+}
+
+.column-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.column-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+/* 快速新增區域 */
+.quick-add {
+    margin-top: 1rem;
+    flex-shrink: 0;
+}
+
+.quick-add-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px dashed var(--glass-border);
+    background: transparent;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.quick-add-input:focus {
+    border-style: solid;
+    border-color: var(--primary-color);
+    background: var(--item-bg);
+}
+
+/* 行動版標籤 */
+.mobile-tabs {
+    display: none;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 8px 0;
+    margin-bottom: 1rem;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    background: var(--filter-bg);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+    .mobile-tabs {
+        display: flex;
+    }
+    
+    .kanban-container {
+        gap: 0;
+    }
+    
+    .kanban-column {
+        display: none;
+        flex: 1 0 100%;
+        max-width: none;
+    }
+    
+    .kanban-column.active {
+        display: flex;
+    }
 }
 
 header h1 {

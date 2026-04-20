@@ -25,6 +25,10 @@ class TodoService {
                 todo.createdAt = new Date().toISOString();
                 modified = true;
             }
+            if (!todo.updatedAt) {
+                todo.updatedAt = todo.createdAt || new Date().toISOString();
+                modified = true;
+            }
             return todo;
         });
         
@@ -55,14 +59,14 @@ class TodoService {
             if (todo.id === id) {
                 const isDone = newStatus === TodoService.Status.DONE;
                 const isTesting = newStatus === TodoService.Status.TESTING;
-                // 審計要求：狀態回退時不清除時間戳記，僅在進入目標狀態時確保有時間
+                Logger.info(`Task ${id} status changing from ${todo.status} to ${newStatus}`);
                 return {
                     ...todo,
                     status: newStatus,
                     completed: isDone,
                     completedAt: isDone ? (todo.completedAt || new Date().toISOString()) : todo.completedAt,
                     testedAt: isTesting ? (todo.testedAt || new Date().toISOString()) : todo.testedAt,
-                    updatedAt: new Date().toISOString() // Update updatedAt on status change
+                    updatedAt: new Date().toISOString()
                 };
             }
             return todo;
@@ -82,30 +86,36 @@ class TodoService {
         return this.todos;
     }
 
-    createNewTodo(text, priority) {
+    createNewTodo(text, status = TodoService.Status.TODO, priority = 'medium') {
         if (!text) return null;
         const newTodo = {
             id: Date.now(),
             text: text,
-            completed: false,
-            status: TodoService.Status.TODO,
-            priority: priority || 'medium',
+            completed: status === TodoService.Status.DONE,
+            status: status,
+            priority: priority,
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(), // Set updatedAt on creation
-            completedAt: null
+            updatedAt: new Date().toISOString(),
+            completedAt: status === TodoService.Status.DONE ? new Date().toISOString() : null
         };
         this.todos.push(newTodo);
         this.save();
+        Logger.info(`Created new task in status ${status}: ${text}`);
         return newTodo;
     }
 
     filterTodoList(currentFilter) {
+        Logger.info(`Filtering tasks for mode: ${currentFilter}`);
         if (currentFilter === 'active') {
             return this.todos.filter(t => t.status !== TodoService.Status.DONE);
         } else if (currentFilter === 'completed') {
             return this.todos.filter(t => t.status === TodoService.Status.DONE);
         }
         return this.todos;
+    }
+
+    getTasksByStatus(status) {
+        return this.todos.filter(t => t.status === status);
     }
 }
 
@@ -121,24 +131,39 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Create an instance of TodoService
     const todoService = new TodoService();
-    let currentFilter = 'all'; // Moved from global
+    let currentFilter = 'all';
+    let activeTabStatus = TodoService.Status.TODO;
 
-    const todoInput = document.getElementById('todo-input');
-    const priorityInput = document.getElementById('priority-input');
-    const addBtn = document.getElementById('add-btn');
-    const todoList = document.getElementById('todo-list');
+    const kanbanContainer = document.getElementById('kanban-container');
+    const mobileTabs = document.getElementById('mobile-tabs');
     const itemsLeft = document.getElementById('items-left');
     const filterBtns = document.querySelectorAll('.filter-btn');
     const clearCompletedBtn = document.getElementById('clear-completed');
     const currentDateDisplay = document.getElementById('current-date');
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = themeToggle ? themeToggle.querySelector('.theme-icon') : null;
+    
+    // Global inputs for top-level adding
+    const todoInput = document.getElementById('todo-input');
+    const priorityInput = document.getElementById('priority-input');
+    const addBtn = document.getElementById('add-btn');
 
-    if (currentDateDisplay) {
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        currentDateDisplay.textContent = new Date().toLocaleDateString('zh-TW', options);
+    const columnDefinitions = [
+        { status: TodoService.Status.BACKLOG, label: '需求池' },
+        { status: TodoService.Status.TODO, label: '待辦' },
+        { status: TodoService.Status.RUNNING, label: '進行中' },
+        { status: TodoService.Status.TESTING, label: '測試中' },
+        { status: TodoService.Status.DONE, label: '已完成' }
+    ];
+
+    function init() {
+        if (currentDateDisplay) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDateDisplay.textContent = new Date().toLocaleDateString('zh-TW', options);
+        }
+        initTheme();
+        render();
     }
 
     function initTheme() {
@@ -161,102 +186,158 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    initTheme();
+    function render() {
+        renderKanban();
+        renderMobileTabs();
+        updateStats();
+    }
 
-    // Initial load and migration handled by TodoService constructor
-    // const rawTodos = JSON.parse(localStorage.getItem('todos')) || [];
-    // const migrationResult = TodoService.migrateLegacyData(rawTodos);
-    // todos = migrationResult.migrated;
-    // if (migrationResult.modified) {
-    //     localStorage.setItem('todos', JSON.stringify(todos));
-    // }
+    function renderKanban() {
+        if (!kanbanContainer) return;
+        kanbanContainer.innerHTML = '';
 
-    function renderTodos() {
-        if (!todoList) return;
-        const filteredTodos = todoService.filterTodoList(currentFilter); // Use todoService
-        todoList.innerHTML = '';
-        filteredTodos.forEach(todo => {
-            const li = document.createElement('li');
-            li.className = `todo-item ${todo.completed ? 'completed' : ''} status-${todo.status}`;
-            let timeLabel = `建立於: ${formatDateTime(todo.createdAt)}`;
-            if (todo.status === TodoService.Status.TESTING && todo.testedAt) { // Use TodoService.Status
-                timeLabel = `測試於: ${formatDateTime(todo.testedAt)}`;
-            } else if (todo.completed && todo.completedAt) {
-                timeLabel = `完成於: ${formatDateTime(todo.completedAt)}`;
-            }
-            const timeInfo = `<span class="todo-time">${timeLabel}</span>`;
-            const priorityLabels = { low: '低', medium: '中', high: '高' };
-            const priorityBadge = `<span class="priority-badge priority-${todo.priority || 'medium'}" data-id="${todo.id}">${priorityLabels[todo.priority || 'medium']}</span>`;
-            const statusOptions = [
-                { value: TodoService.Status.BACKLOG, label: 'Backlog' }, // Use TodoService.Status
-                { value: TodoService.Status.TODO, label: 'Todo' },      // Use TodoService.Status
-                { value: TodoService.Status.RUNNING, label: 'Running' }, // Use TodoService.Status
-                { value: TodoService.Status.TESTING, label: 'Testing' }, // Use TodoService.Status
-                { value: TodoService.Status.DONE, label: 'Done' }       // Use TodoService.Status
-            ];
-            const statusDropdown = `
-                <select class="status-select" data-id="${todo.id}">
-                    ${statusOptions.map(opt => `<option value="${opt.value}" ${todo.status === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
-                </select>
-            `;
-            li.innerHTML = `
-                <input type="checkbox" ${todo.completed ? 'checked' : ''}>
-                <div class="todo-content">
-                    <div class="todo-header-row">
-                        ${priorityBadge}
-                        ${statusDropdown}
-                        <input type="text" class="todo-text" value="${todo.text}">
-                    </div>
-                    ${timeInfo}
-                </div>
-                <button class="delete-btn" aria-label="Delete">&times;</button>
-            `;
-            const checkbox = li.querySelector('input[type="checkbox"]');
-            checkbox.addEventListener('change', () => {
-                const newStatus = todo.completed ? TodoService.Status.TODO : TodoService.Status.DONE; // Use TodoService.Status
-                todoService.updateTaskStatus(todo.id, newStatus); // Use todoService
-                renderTodos();
-            });
-            const statusSelect = li.querySelector('.status-select');
-            statusSelect.addEventListener('change', (e) => {
-                todoService.updateTaskStatus(todo.id, e.target.value); // Use todoService
-                renderTodos();
-            });
-            const badge = li.querySelector('.priority-badge');
-            badge.addEventListener('click', () => {
-                const levels = ['low', 'medium', 'high'];
-                const currentIdx = levels.indexOf(todo.priority || 'medium');
-                const nextIdx = (currentIdx + 1) % levels.length;
-                todoService.updateTaskProperty(todo.id, 'priority', levels[nextIdx]);
-                renderTodos();
-            });
-            const textInput = li.querySelector('.todo-text');
-            textInput.addEventListener('blur', () => {
-                if (textInput.value.trim() !== todo.text) {
-                    todoService.updateTaskProperty(todo.id, 'text', textInput.value.trim());
-                    renderTodos();
-                }
-            });
-            const deleteBtn = li.querySelector('.delete-btn');
-            deleteBtn.addEventListener('click', () => {
-                todoService.todos = todoService.todos.filter(t => t.id !== todo.id); // Use todoService
-                todoService.save(); // Use todoService
-                renderTodos();
-            });
-            todoList.appendChild(li);
+        const activeColumns = getActiveColumns();
+        activeColumns.forEach(colDef => {
+            const columnEl = createColumnElement(colDef);
+            kanbanContainer.appendChild(columnEl);
         });
-        const activeCount = todoService.getTodos().filter(t => t.status !== TodoService.Status.DONE).length; // Use todoService
+    }
+
+    function getActiveColumns() {
+        if (currentFilter === 'active') {
+            return columnDefinitions.filter(c => c.status !== TodoService.Status.DONE);
+        } else if (currentFilter === 'completed') {
+            return columnDefinitions.filter(c => c.status === TodoService.Status.DONE);
+        }
+        return columnDefinitions;
+    }
+
+    function createColumnElement(colDef) {
+        const tasks = todoService.getTasksByStatus(colDef.status);
+        const column = document.createElement('div');
+        column.className = `kanban-column status-${colDef.status} ${activeTabStatus === colDef.status ? 'active' : ''}`;
+        column.dataset.status = colDef.status;
+
+        column.innerHTML = `
+            <div class="column-header">
+                <h3>${colDef.label}</h3>
+                <span class="task-count">${tasks.length}</span>
+            </div>
+            <div class="column-content" id="content-${colDef.status}"></div>
+            <div class="quick-add">
+                <input type="text" class="quick-add-input" placeholder="+ 快速新增任務..." data-status="${colDef.status}">
+            </div>
+        `;
+
+        const content = column.querySelector('.column-content');
+        tasks.forEach(task => {
+            content.appendChild(createTaskElement(task));
+        });
+
+        // Event: Quick Add
+        const quickAddInput = column.querySelector('.quick-add-input');
+        quickAddInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && quickAddInput.value.trim()) {
+                todoService.createNewTodo(quickAddInput.value.trim(), colDef.status);
+                quickAddInput.value = '';
+                render();
+            }
+        });
+
+        return column;
+    }
+
+    function createTaskElement(todo) {
+        const item = document.createElement('div');
+        item.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+        
+        let timeLabel = `建立於: ${formatDateTime(todo.createdAt)}`;
+        if (todo.status === TodoService.Status.TESTING && todo.testedAt) {
+            timeLabel = `測試於: ${formatDateTime(todo.testedAt)}`;
+        } else if (todo.completed && todo.completedAt) {
+            timeLabel = `完成於: ${formatDateTime(todo.completedAt)}`;
+        }
+
+        const priorityLabels = { low: '低', medium: '中', high: '高' };
+        
+        item.innerHTML = `
+            <input type="checkbox" ${todo.completed ? 'checked' : ''}>
+            <div class="todo-content">
+                <div class="todo-header-row">
+                    <span class="priority-badge priority-${todo.priority || 'medium'}">${priorityLabels[todo.priority || 'medium']}</span>
+                    <select class="status-select">
+                        ${columnDefinitions.map(opt => `<option value="${opt.status}" ${todo.status === opt.status ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                    </select>
+                    <input type="text" class="todo-text" value="${todo.text}">
+                </div>
+                <span class="todo-time">${timeLabel}</span>
+            </div>
+            <button class="delete-btn">&times;</button>
+        `;
+
+        // Listeners
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', () => {
+            const newStatus = todo.completed ? TodoService.Status.TODO : TodoService.Status.DONE;
+            todoService.updateTaskStatus(todo.id, newStatus);
+            render();
+        });
+
+        const statusSelect = item.querySelector('.status-select');
+        statusSelect.addEventListener('change', (e) => {
+            todoService.updateTaskStatus(todo.id, e.target.value);
+            render();
+        });
+
+        const textInput = item.querySelector('.todo-text');
+        textInput.addEventListener('blur', () => {
+            if (textInput.value.trim() !== todo.text) {
+                todoService.updateTaskProperty(todo.id, 'text', textInput.value.trim());
+                render();
+            }
+        });
+
+        const deleteBtn = item.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', () => {
+            todoService.todos = todoService.todos.filter(t => t.id !== todo.id);
+            todoService.save();
+            render();
+        });
+
+        return item;
+    }
+
+    function renderMobileTabs() {
+        if (!mobileTabs) return;
+        mobileTabs.innerHTML = '';
+        const activeColumns = getActiveColumns();
+
+        activeColumns.forEach(col => {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${activeTabStatus === col.status ? 'active' : ''}`;
+            btn.textContent = col.label;
+            btn.addEventListener('click', () => {
+                activeTabStatus = col.status;
+                render();
+            });
+            mobileTabs.appendChild(btn);
+        });
+    }
+
+    function updateStats() {
+        const activeCount = todoService.getTodos().filter(t => t.status !== TodoService.Status.DONE).length;
         if (itemsLeft) itemsLeft.textContent = `${activeCount} 個項目待辦`;
     }
 
-    function addTodo() { // This function also needs to use todoService
+    // Top-level Adding
+    function addTodo() {
         if (!todoInput) return;
         const text = todoInput.value.trim();
         const priority = priorityInput ? priorityInput.value : 'medium';
-        todoService.createNewTodo(text, priority); // Use todoService
-        renderTodos();
+        todoService.createNewTodo(text, TodoService.Status.TODO, priority);
         todoInput.value = '';
         if (priorityInput) priorityInput.value = 'medium';
+        render();
     }
 
     if (addBtn) addBtn.addEventListener('click', addTodo);
@@ -265,23 +346,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'Enter') addTodo();
         });
     }
-    
+
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.getAttribute('data-filter');
-            renderTodos();
+            // Reset active tab for mobile when changing filters
+            const availableCols = getActiveColumns();
+            if (!availableCols.find(c => c.status === activeTabStatus)) {
+                activeTabStatus = availableCols[0].status;
+            }
+            render();
         });
     });
 
     if (clearCompletedBtn) {
         clearCompletedBtn.addEventListener('click', () => {
-            todoService.todos = todoService.todos.filter(t => t.status !== TodoService.Status.DONE); // Use todoService and TodoService.Status
-            todoService.save(); // Use todoService
-            renderTodos();
+            todoService.todos = todoService.todos.filter(t => t.status !== TodoService.Status.DONE);
+            todoService.save();
+            render();
         });
     }
 
-    renderTodos();
+    init();
 });

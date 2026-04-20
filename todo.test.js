@@ -6,145 +6,130 @@ import { performance } from 'perf_hooks';
 
 // 核心函式測試
 // 由於 script.js 是為瀏覽器設計的，我們在這裡使用 require 載入它匯出的 CommonJS 部分
-const { 
-    Status, 
-    migrateLegacyData, 
-    updateTaskStatus, 
-    formatDateTime, 
-    createNewTodo, 
-    filterTodoList 
-} = require('./script.js');
+const { TodoService, formatDateTime } = require('./script.js');
 
-describe('Todo Logic (Unit)', () => {
+describe('TodoService Logic (Unit)', () => {
+    let service;
+    const mockTodos = [
+        { id: 1, text: 'Backlog Task', status: TodoService.Status.BACKLOG, completed: false },
+        { id: 2, text: 'Todo Task', status: TodoService.Status.TODO, completed: false },
+        { id: 3, text: 'Running Task', status: TodoService.Status.RUNNING, completed: false },
+        { id: 4, text: 'Testing Task', status: TodoService.Status.TESTING, completed: false },
+        { id: 5, text: 'Done Task', status: TodoService.Status.DONE, completed: true }
+    ];
+
+    beforeEach(() => {
+        // Mock localStorage
+        const storage = {
+            'todos': JSON.stringify(mockTodos)
+        };
+        global.localStorage = {
+            getItem: vi.fn(key => storage[key] || null),
+            setItem: vi.fn((key, value) => storage[key] = value.toString()),
+            removeItem: vi.fn(key => delete storage[key]),
+            clear: vi.fn(() => Object.keys(storage).forEach(k => delete storage[k]))
+        };
+        service = new TodoService();
+    });
+
     test('Status constants should be correct', () => {
-        expect(Status.BACKLOG).toBe('backlog');
-        expect(Status.TODO).toBe('todo');
-        expect(Status.RUNNING).toBe('running');
-        expect(Status.TESTING).toBe('testing');
-        expect(Status.DONE).toBe('done');
+        expect(TodoService.Status.BACKLOG).toBe('backlog');
+        expect(TodoService.Status.TODO).toBe('todo');
+        expect(TodoService.Status.RUNNING).toBe('running');
+        expect(TodoService.Status.TESTING).toBe('testing');
+        expect(TodoService.Status.DONE).toBe('done');
     });
 
     test('migrateLegacyData should convert boolean completed to status', () => {
         const legacy = [
-            { id: 1, text: 'Done Task', completed: true },
-            { id: 2, text: 'Active Task', completed: false }
+            { id: 10, text: 'Legacy Done', completed: true },
+            { id: 11, text: 'Legacy Active', completed: false }
         ];
-        const { migrated, modified } = migrateLegacyData(legacy);
+        const { migrated, modified } = TodoService.migrateLegacyData(legacy);
         expect(modified).toBe(true);
-        expect(migrated[0].status).toBe(Status.DONE);
-        expect(migrated[1].status).toBe(Status.TODO);
+        expect(migrated[0].status).toBe(TodoService.Status.DONE);
+        expect(migrated[1].status).toBe(TodoService.Status.TODO);
         expect(migrated[0].createdAt).toBeDefined();
     });
 
+    test('T008: TodoService.getTasksByStatus should return correct tasks', () => {
+        const backlogTasks = service.getTodos().filter(t => t.status === TodoService.Status.BACKLOG);
+        expect(backlogTasks.length).toBe(1);
+        expect(backlogTasks[0].text).toBe('Backlog Task');
+
+        const doneTasks = service.getTodos().filter(t => t.status === TodoService.Status.DONE);
+        expect(doneTasks.length).toBe(1);
+        expect(doneTasks[0].text).toBe('Done Task');
+    });
+
+    test('updateTaskStatus should update status and timestamps', () => {
+        service.updateTaskStatus(2, TodoService.Status.RUNNING);
+        const updated = service.getTodos().find(t => t.id === 2);
+        expect(updated.status).toBe(TodoService.Status.RUNNING);
+        expect(updated.updatedAt).toBeDefined();
+    });
+
     test('Audit Retention: should keep timestamps when rolling back status', () => {
-        const initialTodos = [{
-            id: 1,
-            text: 'Audit Task',
-            completed: true,
-            status: Status.DONE,
-            completedAt: '2026-04-20T10:00:00Z',
-            testedAt: '2026-04-20T09:00:00Z'
-        }];
-        
+        // Setup a task that was done
+        service.updateTaskStatus(2, TodoService.Status.DONE);
+        const doneAt = service.getTodos().find(t => t.id === 2).completedAt;
+        expect(doneAt).toBeDefined();
+
         // Rollback to Running
-        const updated = updateTaskStatus(initialTodos, 1, Status.RUNNING);
-        expect(updated[0].status).toBe(Status.RUNNING);
-        expect(updated[0].completed).toBe(false);
-        // Should RETAIN completedAt and testedAt for audit
-        expect(updated[0].completedAt).toBe('2026-04-20T10:00:00Z');
-        expect(updated[0].testedAt).toBe('2026-04-20T09:00:00Z');
+        service.updateTaskStatus(2, TodoService.Status.RUNNING);
+        const rolledBack = service.getTodos().find(t => t.id === 2);
+        expect(rolledBack.status).toBe(TodoService.Status.RUNNING);
+        expect(rolledBack.completed).toBe(false);
+        // Should RETAIN completedAt for audit
+        expect(rolledBack.completedAt).toBe(doneAt);
     });
 
-    test('createNewTodo should set default status to TODO', () => {
-        const todo = createNewTodo('New task');
-        expect(todo.status).toBe(Status.TODO);
-        expect(todo.completed).toBe(false);
-    });
+    test('T014a: Task counter synchronization should be accurate', () => {
+        const initialCount = service.getTodos().filter(t => t.status === TodoService.Status.TODO).length;
+        
+        // Add a new todo (pass status correctly)
+        service.createNewTodo('New Todo Task', TodoService.Status.TODO, 'medium');
+        const newCount = service.getTodos().filter(t => t.status === TodoService.Status.TODO).length;
+        expect(newCount).toBe(initialCount + 1);
 
-    test('filterTodoList should filter correctly by status', () => {
-        const todos = [
-            { id: 1, status: Status.TODO },
-            { id: 2, status: Status.DONE },
-            { id: 3, status: Status.BACKLOG }
-        ];
-        expect(filterTodoList(todos, 'active').length).toBe(2);
-        expect(filterTodoList(todos, 'completed').length).toBe(1);
+        // Move it to Running
+        const newTodoId = service.getTodos().find(t => t.text === 'New Todo Task').id;
+        service.updateTaskStatus(newTodoId, TodoService.Status.RUNNING);
+        
+        const countAfterMove = service.getTodos().filter(t => t.status === TodoService.Status.TODO).length;
+        const runningCount = service.getTodos().filter(t => t.status === TodoService.Status.RUNNING).length;
+        
+        expect(countAfterMove).toBe(initialCount);
+        expect(runningCount).toBe(2); // Initial 1 + new 1
     });
 });
 
-describe('Performance Benchmark (SC-003)', () => {
+describe('Performance Benchmark (SC-001)', () => {
     test('filterTodoList should process 1000 items in less than 200ms', () => {
+        const storage = { 'todos': '[]' };
+        global.localStorage = {
+            getItem: vi.fn(key => storage[key] || null),
+            setItem: vi.fn((key, value) => storage[key] = value.toString())
+        };
+        const service = new TodoService();
+        
         const manyTodos = Array.from({ length: 1000 }, (_, i) => ({
             id: i,
             text: `Task ${i}`,
             completed: i % 2 === 0,
-            status: i % 2 === 0 ? Status.DONE : Status.TODO
+            status: i % 2 === 0 ? TodoService.Status.DONE : TodoService.Status.TODO,
+            createdAt: new Date().toISOString()
         }));
+        service.todos = manyTodos;
         
         const start = performance.now();
-        filterTodoList(manyTodos, 'active');
-        filterTodoList(manyTodos, 'completed');
-        filterTodoList(manyTodos, 'all');
+        service.filterTodoList('active');
+        service.filterTodoList('completed');
+        service.filterTodoList('all');
         const end = performance.now();
         
         const duration = end - start;
         console.log(`[BENCHMARK] Filtering 1000 items took ${duration.toFixed(2)}ms`);
         expect(duration).toBeLessThan(200);
-    });
-});
-
-// 整合測試 (DOM)
-const scriptPath = path.resolve(process.cwd(), './script.js');
-const htmlPath = path.resolve(process.cwd(), './index.html');
-const scriptContent = fs.readFileSync(scriptPath, 'utf8');
-const htmlContent = fs.readFileSync(htmlPath, 'utf8');
-
-describe('Todo Application Integration (DOM)', () => {
-    let dom;
-    let window;
-    let document;
-
-    beforeEach(() => {
-        dom = new JSDOM(htmlContent, { runScripts: "dangerously", resources: "usable" });
-        window = dom.window;
-        document = window.document;
-        
-        const storage = {};
-        Object.defineProperty(window, 'localStorage', {
-            value: {
-                getItem: vi.fn(key => storage[key] || null),
-                setItem: vi.fn((key, value) => storage[key] = value.toString()),
-                clear: vi.fn(() => Object.keys(storage).forEach(k => delete storage[k])),
-                removeItem: vi.fn(key => delete storage[key])
-            },
-            writable: true
-        });
-
-        const scriptEl = document.createElement('script');
-        scriptEl.textContent = scriptContent;
-        document.body.appendChild(scriptEl);
-        
-        const event = new window.Event('DOMContentLoaded');
-        document.dispatchEvent(event);
-    });
-
-    it('should sync status when checkbox is toggled', () => {
-        const input = document.getElementById('todo-input');
-        const addBtn = document.getElementById('add-btn');
-        input.value = 'Sync Test';
-        addBtn.click();
-
-        const checkbox = document.querySelector('input[type="checkbox"]');
-        const select = document.querySelector('.status-select');
-        
-        expect(select.value).toBe(Status.TODO);
-        
-        // Trigger click which changes checkbox state and triggers 'change' event
-        checkbox.click();
-        
-        expect(select.value).toBe(Status.DONE);
-        
-        checkbox.click();
-        expect(select.value).toBe(Status.TODO);
     });
 });

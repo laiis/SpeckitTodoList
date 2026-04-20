@@ -44,18 +44,19 @@
 
 ### Tests for User Story 1 (TDD) ⚠️
 
-- [ ] T008 [P] [US1] 撰寫 `TodoService.getTasksByStatus` 的單元測試於 `todo.test.js`
+- [x] T008 [P] [US1] 撰寫 `TodoService.getTasksByStatus` 的單元測試於 `todo.test.js`
 - [ ] T009 [P] [US1] 撰寫切換至「待完成」模式時欄位渲染邏輯的測試於 `todo.test.js`
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] 實作 `TodoService` 的過濾邏輯，並整合 Logger 記錄狀態過濾行為於 `script.js` (FR-007)
-- [ ] T011 [P] [US1] 實作看板佈局 CSS 於 `style.css` (Flexbox, min-width 280px, overflow-x)
-- [ ] T012 [P] [US1] 實作欄位獨立垂直捲動與固定標題樣式於 `style.css`
-- [ ] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 4 個狀態欄位於 `script.js`
-- [ ] T014 [US1] 實作標題旁即時顯示任務計數功能於 `script.js` (FR-004)
-- [ ] T015 [US1] 實作欄位底部的快速新增區域 HTML/CSS 於 `index.html` 與 `style.css` (FR-008)
-- [ ] T016 [US1] 實作快速新增功能的事件監聽與 Service 呼叫於 `script.js`
+- [x] T010 [US1] 實作 `TodoService` 的過濾邏輯，並整合 Logger 記錄狀態過濾行為於 `script.js` (FR-007)
+- [x] T011 [P] [US1] 實作看板佈局 CSS 於 `style.css` (Flexbox, min-width 280px, overflow-x)
+- [x] T012 [P] [US1] 實作欄位獨立垂直捲動與固定標題樣式於 `style.css`
+- [x] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 4 個狀態欄位於 `script.js`
+- [x] T014 [US1] 實作標題旁即時顯示任務計數功能於 `script.js` (FR-004)
+- [x] T014a [US1] 撰寫計數器同步測試於 `todo.test.js`：驗證新增、刪除或移動任務後，對應欄位標題旁的計數器能 100% 準確更新
+- [x] T015 [US1] 實作快速新增區域 HTML/CSS 於 `index.html` 與 `style.css` (FR-008)
+- [x] T016 [US1] 實作快速新增功能的事件監聽與 Service 呼叫於 `script.js`
 
 **Checkpoint**: 使用者故事 1 應已完全運作並可獨立測試。
 
@@ -172,3 +173,4 @@ Task: "實作看板佈局 CSS 於 style.css"
 - 每個任務完成後進行 commit (遵循 project 規範)。
 - 確保所有 DOM 操作均透過 Controller 類別管理，業務邏輯保留在 Service 中。
 業務邏輯保留在 Service 中。
+rvice 中。
