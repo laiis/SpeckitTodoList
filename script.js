@@ -1,4 +1,10 @@
 // 提取核心邏輯以利測試
+// 憲法要求：封裝日誌記錄
+const Logger = {
+    info: (...args) => console.log(`[INFO] ${new Date().toISOString()}:`, ...args),
+    error: (...args) => console.error(`[ERROR] ${new Date().toISOString()}:`, ...args)
+};
+
 const Status = {
     BACKLOG: 'backlog',
     TODO: 'todo',
@@ -29,11 +35,12 @@ function updateTaskStatus(todos, id, newStatus) {
         if (todo.id === id) {
             const isDone = newStatus === Status.DONE;
             const isTesting = newStatus === Status.TESTING;
+            // 審計要求：狀態回退時不清除時間戳記，僅在進入目標狀態時確保有時間
             return {
                 ...todo,
                 status: newStatus,
                 completed: isDone,
-                completedAt: isDone ? (todo.completedAt || new Date().toISOString()) : null,
+                completedAt: isDone ? (todo.completedAt || new Date().toISOString()) : todo.completedAt,
                 testedAt: isTesting ? (todo.testedAt || new Date().toISOString()) : todo.testedAt
             };
         }

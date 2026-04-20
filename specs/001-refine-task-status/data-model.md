@@ -26,8 +26,8 @@
 
 | 起始狀態 | 目標狀態 | 觸發條件 | 自動操作 |
 | :--- | :--- | :--- | :--- |
-| Any | `Testing` | 下拉選單選取 `Testing` | 記錄/更新 `testedAt` (保留歷史戳記直到下次測試) |
-| Any | `Done` | 下拉選單選取 `Done` | 記錄/更新 `completedAt`, `completed = true` |
+| Any | `Testing` | 下拉選單選取 `Testing` | 記錄/更新 `testedAt` (保留直到下次進入該狀態或手動刪除) |
+| Any | `Done` | 下拉選單選取 `Done` | 記錄/更新 `completedAt`, `completed = true` (保留直到下次進入該狀態) |
 | `Done` | Not `Done` | 下拉選單選取其他 | `completed = false` (保留 `completedAt` 供審計使用) |
 | `Testing` | Not `Testing`| 下拉選單選取其他 | 保留 `testedAt` (供品質檢查參考) |
 
