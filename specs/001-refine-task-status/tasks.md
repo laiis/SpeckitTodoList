@@ -66,12 +66,12 @@
 
 **目的**: UI 精細化與最終驗證
 
-- [ ] T013 [P] 在 `style.css` 中優化下拉選單的玻璃擬態過場動畫與懸停效果
-- [ ] T014 在 `style.css` 中確保狀態標籤具備深色模式相容性
-- [ ] T015 執行 quickstart.md 驗證步驟，並修正文件中的 localStorage 鍵名錯誤
-- [ ] T016 [P] 更新 `data-model.md` 資料結構文件，確保符合《憲法》審計要求
-- [ ] T017 執行 SC-003 效能基準測試，確保過濾響應時間 < 200ms
-- [ ] T018 [P] [US1] 在 `style.css` 為 `status-running` 新增微妙的脈動 (pulse) 動畫以強化視覺回饋
+- [x] T013 [P] 在 `style.css` 中優化下拉選單的玻璃擬態過場動畫與懸停效果
+- [x] T014 在 `style.css` 中確保狀態標籤具備深色模式相容性
+- [x] T015 執行 quickstart.md 驗證步驟，並修正文件中的 localStorage 鍵名錯誤
+- [x] T016 [P] 更新 `data-model.md` 資料結構文件，確保符合《憲法》審計要求
+- [x] T017 執行 SC-003 效能基準測試，確保過濾響應時間 < 200ms
+- [x] T018 [P] [US1] 在 `style.css` 為 `status-running` 新增微妙的脈動 (pulse) 動畫以強化視覺回饋
 
 ---
 

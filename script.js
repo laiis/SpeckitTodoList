@@ -133,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function saveAndRender() {
         localStorage.setItem('todos', JSON.stringify(todos));
+        Logger.info(`Saved ${todos.length} items to storage.`);
         renderTodos();
     }
 

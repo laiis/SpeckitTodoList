@@ -1,4 +1,8 @@
 node_modules/
 .DS_Store
 dist/
+build/
 *.log
+.env*
+coverage/
+.vitest-results/
