@@ -17,7 +17,15 @@
 - **文件產出**:
     - 規格書: `specs/001-refine-task-status/spec.md` (已更新 FR-007)
 
-### 3. 功能開發實作 (Implementation)
+### 3. 實作計畫展開 (Planning Phase 0 & 1)
+- **文件產出**:
+    - 實作計畫書: `specs/001-refine-task-status/plan.md` (已完成)
+    - 研究文件: `specs/001-refine-task-status/research.md` (定義資料遷移與 UI 實作邏輯)
+    - 資料模型: `specs/001-refine-task-status/data-model.md` (定義 5 階狀態機與時間戳記規則)
+    - 快速上手: `specs/001-refine-task-status/quickstart.md` (提供手動驗證步驟)
+- **上下文更新**: 已將 `GEMINI.md` 的計畫參考指向新建立的 `plan.md`。
+
+### 4. 功能開發實作 (Implementation - 初步完成)
 - **核心邏輯 (`script.js`)**:
     - 實作資料遷移邏輯，確保舊任務能對應至新狀態系統。
     - 導入 `updateStatus` 函數處理 5 種狀態切換。
@@ -29,7 +37,7 @@
     - 實作動態時間顯示（建立於/測試於/完成於）。
 
 ## 下一步計畫
-- [ ] 完成正式實作計畫書 (`plan.md`)、研究文件 (`research.md`) 與資料模型 (`data-model.md`) 的存檔。
+- [ ] 執行 `/speckit.tasks` 展開具體開發任務清單。
 - [ ] 執行 `/speckit.verify` 驗證實作是否完全符合規格書。
 - [ ] 準備提交程式碼並進行 Retrospective。
 
