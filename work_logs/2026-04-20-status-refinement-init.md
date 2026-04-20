@@ -1,47 +1,30 @@
-# 工作日誌：細分任務狀態功能啟動
+# 工作日誌：細分任務狀態功能 (Refine Task Status)
 
-**日期**: 2026-04-20
-**功能分支**: `001-refine-task-statuses`
+**日期**: 2026-04-20  
+**階段**: 規劃與設計驗證 (Planning & Design Validation)  
+**關聯功能**: 001-refine-task-status
 
-## 今日進度
+## 本次進度摘要
+1.  **文件審核與同步**: 
+    - 完整檢閱 `spec.md`, `plan.md`, `data-model.md` 與 `research.md`。
+    - 確保技術決策（下拉選單、玻璃擬態、資料遷移邏輯）符合專案憲法。
+2.  **任務分解 (Task Decomposition)**:
+    - 根據設計文件生成完整的 `tasks.md`。
+    - 遵循憲法規範，全面採用**正體中文**撰寫任務描述與技術名詞。
+    - 將任務細分為 4 個階段（設定、基礎開發、US1 實作、優化），共 16 個子任務。
+3.  **規格分析與補強 (/speckit.analyze)**:
+    - 執行分析發現 `SC-003` (效能 < 200ms) 缺乏具體驗證手段。
+    - 成功補強 `tasks.md` (T015) 與 `quickstart.md` (情境 C)，加入 `console.time` 效能基準測試步驟。
 
-### 1. 專案憲法更新 (Constitution Update)
-- **版本**: v1.0.0 (已完成)
+## 目前狀態
+- [x] 功能規格書 (spec.md) - 已就緒
+- [x] 實作計畫書 (plan.md) - 已就緒
+- [x] 任務清單 (tasks.md) - 已就緒 (100% 覆蓋率)
+- [x] 測試指南 (quickstart.md) - 已補強效能測試
 
-### 2. 功能規格書建立與釐清 (Specification & Clarification)
-- **分支處理**: 已切換至 `001-refine-task-statuses` 分支。
-- **關鍵釐清事項**:
-    - **互動設計**: 確定採用「下拉選單 (Dropdown)」進行狀態切換。
-    - **自動化邏輯**: 狀態設為 `Done` 時將自動同步勾選狀態。
-    - **時間記錄**: 確定在進入 `Testing` 狀態時記錄 `testedAt` 時間戳記。
-- **文件產出**:
-    - 規格書: `specs/001-refine-task-status/spec.md` (已更新 FR-007)
+## 下一步行動
+- 執行 `/speckit.implement` 開始實作 **階段 1 (T001-T003)**：`localStorage` 資料遷移與 CSS 變數定義。
 
-### 3. 實作計畫展開 (Planning Phase 0 & 1)
-- **文件產出**:
-    - 實作計畫書: `specs/001-refine-task-status/plan.md` (已完成)
-    - 研究文件: `specs/001-refine-task-status/research.md` (定義資料遷移與 UI 實作邏輯)
-    - 資料模型: `specs/001-refine-task-status/data-model.md` (定義 5 階狀態機與時間戳記規則)
-    - 快速上手: `specs/001-refine-task-status/quickstart.md` (提供手動驗證步驟)
-- **上下文更新**: 已將 `GEMINI.md` 的計畫參考指向新建立的 `plan.md`。
-
-### 4. 功能開發實作 (Implementation - 初步完成)
-- **核心邏輯 (`script.js`)**:
-    - 實作資料遷移邏輯，確保舊任務能對應至新狀態系統。
-    - 導入 `updateStatus` 函數處理 5 種狀態切換。
-    - 實作 `testedAt` 與 `completedAt` 的自動記錄與清除邏輯。
-    - 更新過濾與計數邏輯，使其支援新的狀態定義。
-- **UI/UX 強化 (`style.css` & `script.js`)**:
-    - 在任務清單中動態生成狀態下拉選單 (`<select>`)。
-    - 為不同狀態（Backlog, Todo, Running, Testing, Done）設計專屬的玻璃擬態標籤樣式。
-    - 實作動態時間顯示（建立於/測試於/完成於）。
-
-## 下一步計畫
-- [ ] 執行 `/speckit.tasks` 展開具體開發任務清單。
-- [ ] 執行 `/speckit.verify` 驗證實作是否完全符合規格書。
-- [ ] 準備提交程式碼並進行 Retrospective。
-
-
-## 備註
-- 目前環境已完全符合專案憲法規範。
-- 程式碼邏輯與呈現層的分離將是接下來實作的重點。
+---
+**記錄人員**: Gemini CLI  
+**狀態**: 等候指示實作

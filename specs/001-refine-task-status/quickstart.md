@@ -27,6 +27,11 @@
     - 任務 UI 顯示綠色標籤。
     - `completedAt` 有時間戳記，`testedAt` 被清除。
 
+### 情境 C：效能基準測試 (SC-003)
+1. 在 `script.js` 的過濾函式開始與結束處加入 `console.time('filter')` 與 `console.timeEnd('filter')`。
+2. 切換各個狀態過濾器（全部、待完成、已完成）。
+3. **預期結果**: 控制台輸出的時間均低於 200ms。
+
 ## 3. 自動化驗證 (CLI)
 
 執行 `/speckit.verify` 進行基準測試。
