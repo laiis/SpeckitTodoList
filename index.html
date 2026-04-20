@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>現代化的 Todo List</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+    
+    <div class="container glass">
+        <header>
+            <div>
+                <h1>My Tasks</h1>
+                <p id="current-date"></p>
+            </div>
+            <button id="theme-toggle" aria-label="Toggle Dark Mode">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </header>
+
+        <div class="input-section">
+            <input type="text" id="todo-input" placeholder="新增一個任務..." autocomplete="off">
+            <select id="priority-input" class="priority-select" aria-label="Select Priority">
+                <option value="low">低</option>
+                <option value="medium" selected>中</option>
+                <option value="high">高</option>
+            </select>
+            <button id="add-btn" aria-label="Add Task">+</button>
+        </div>
+
+        <div class="filter-section">
+            <button class="filter-btn active" data-filter="all">全部</button>
+            <button class="filter-btn" data-filter="active">待完成</button>
+            <button class="filter-btn" data-filter="completed">已完成</button>
+        </div>
+
+        <ul id="todo-list">
+            <!-- 任務會動態插入這裡 -->
+        </ul>
+
+        <div class="footer-stats">
+            <span id="items-left">0 個項目待辦</span>
+            <button id="clear-completed">清除已完成</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
