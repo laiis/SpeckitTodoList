@@ -36,6 +36,20 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
 
     let todos = JSON.parse(localStorage.getItem('todos')) || [];
+    
+    // 資料遷移：確保舊任務有 status 屬性
+    let needsMigration = false;
+    todos = todos.map(todo => {
+        if (!todo.status) {
+            todo.status = todo.completed ? 'done' : 'todo';
+            needsMigration = true;
+        }
+        return todo;
+    });
+    if (needsMigration) {
+        localStorage.setItem('todos', JSON.stringify(todos));
+    }
+
     let currentFilter = 'all';
 
     // 初始化渲染
@@ -58,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
             id: Date.now(),
             text: text,
             completed: false,
+            status: 'todo', // 預設狀態為 Todo
             priority: priority,
             createdAt: new Date().toISOString(),
             completedAt: null
@@ -77,6 +92,25 @@ document.addEventListener('DOMContentLoaded', () => {
         saveAndRender();
     }
 
+    // 更新任務狀態
+    function updateStatus(id, newStatus) {
+        todos = todos.map(todo => {
+            if (todo.id === id) {
+                const isDone = newStatus === 'done';
+                const isTesting = newStatus === 'testing';
+                return {
+                    ...todo,
+                    status: newStatus,
+                    completed: isDone,
+                    completedAt: isDone ? (todo.completedAt || new Date().toISOString()) : null,
+                    testedAt: isTesting ? (todo.testedAt || new Date().toISOString()) : todo.testedAt
+                };
+            }
+            return todo;
+        });
+        saveAndRender();
+    }
+
     // 刪除任務
     function deleteTodo(id) {
         todos = todos.filter(todo => todo.id !== id);
@@ -89,15 +123,17 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTodos();
     }
 
-    // 切換狀態
+    // 切換勾選狀態 (與狀態連動)
     function toggleTodo(id) {
         todos = todos.map(todo => {
             if (todo.id === id) {
-                const isCompleted = !todo.completed;
+                const isNowCompleted = !todo.completed;
                 return { 
                     ...todo, 
-                    completed: isCompleted,
-                    completedAt: isCompleted ? new Date().toISOString() : null
+                    completed: isNowCompleted,
+                    status: isNowCompleted ? 'done' : 'todo',
+                    completedAt: isNowCompleted ? new Date().toISOString() : null,
+                    testedAt: isNowCompleted ? todo.testedAt : null // 勾選完成時保留測試時間，取消則清空
                 };
             }
             return todo;
@@ -115,29 +151,49 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTodos() {
         let filteredTodos = todos;
         if (currentFilter === 'active') {
-            filteredTodos = todos.filter(t => !t.completed);
+            filteredTodos = todos.filter(t => t.status !== 'done');
         } else if (currentFilter === 'completed') {
-            filteredTodos = todos.filter(t => t.completed);
+            filteredTodos = todos.filter(t => t.status === 'done');
         }
 
         todoList.innerHTML = '';
         
         filteredTodos.forEach(todo => {
             const li = document.createElement('li');
-            li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+            li.className = `todo-item ${todo.completed ? 'completed' : ''} status-${todo.status}`;
             
-            const timeInfo = todo.completed 
-                ? `<span class="todo-time">完成於: ${formatDateTime(todo.completedAt)}</span>`
-                : `<span class="todo-time">建立於: ${formatDateTime(todo.createdAt)}</span>`;
+            let timeLabel = `建立於: ${formatDateTime(todo.createdAt)}`;
+            if (todo.status === 'testing' && todo.testedAt) {
+                timeLabel = `測試於: ${formatDateTime(todo.testedAt)}`;
+            } else if (todo.completed && todo.completedAt) {
+                timeLabel = `完成於: ${formatDateTime(todo.completedAt)}`;
+            }
+            
+            const timeInfo = `<span class="todo-time">${timeLabel}</span>`;
 
             const priorityLabels = { low: '低', medium: '中', high: '高' };
             const priorityBadge = `<span class="priority-badge priority-${todo.priority || 'medium'}" data-id="${todo.id}">${priorityLabels[todo.priority || 'medium']}</span>`;
 
+            const statusOptions = [
+                { value: 'backlog', label: 'Backlog' },
+                { value: 'todo', label: 'Todo' },
+                { value: 'running', label: 'Running' },
+                { value: 'testing', label: 'Testing' },
+                { value: 'done', label: 'Done' }
+            ];
+
+            const statusDropdown = `
+                <select class="status-select" data-id="${todo.id}">
+                    ${statusOptions.map(opt => `<option value="${opt.value}" ${todo.status === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                </select>
+            `;
+
             li.innerHTML = `
                 <input type="checkbox" ${todo.completed ? 'checked' : ''}>
                 <div class="todo-content">
-                    <div style="display: flex; align-items: center;">
+                    <div class="todo-header-row">
                         ${priorityBadge}
+                        ${statusDropdown}
                         <input type="text" class="todo-text" value="${todo.text}">
                     </div>
                     ${timeInfo}
@@ -148,6 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // 事件綁定
             const checkbox = li.querySelector('input[type="checkbox"]');
             checkbox.addEventListener('change', () => toggleTodo(todo.id));
+
+            const statusSelect = li.querySelector('.status-select');
+            statusSelect.addEventListener('change', (e) => updateStatus(todo.id, e.target.value));
 
             const badge = li.querySelector('.priority-badge');
             badge.addEventListener('click', () => {
@@ -177,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 更新統計
-        const activeCount = todos.filter(t => !t.completed).length;
+        const activeCount = todos.filter(t => t.status !== 'done').length;
         itemsLeft.textContent = `${activeCount} 個項目待辦`;
     }
 

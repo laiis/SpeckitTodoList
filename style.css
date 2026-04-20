@@ -270,18 +270,59 @@ header p {
     display: flex;
     flex-direction: column;
     margin: 0 12px;
+    overflow: hidden;
+}
+
+.todo-header-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
 }
 
 .todo-item .todo-text {
-    width: 100%;
+    flex: 1;
+    min-width: 150px;
     font-size: 0.95rem;
     color: var(--text-main);
     cursor: pointer;
     border: none;
     background: transparent;
     padding: 2px 4px;
-    margin-bottom: 2px;
 }
+
+/* 狀態下拉選單樣式 */
+.status-select {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border: 1px solid var(--glass-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.status-select:focus {
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* 各狀態顏色 */
+.status-backlog .status-select { background: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
+.status-todo .status-select { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; }
+.status-running .status-select { background: #fef3c7; color: #b45309; border-color: #fde68a; }
+.status-testing .status-select { background: #f3e8ff; color: #7e22ce; border-color: #e9d5ff; }
+.status-done .status-select { background: #d1fae5; color: #047857; border-color: #a7f3d0; }
+
+body.dark-mode .status-backlog .status-select { background: #334155; color: #94a3b8; }
+body.dark-mode .status-todo .status-select { background: #312e81; color: #c7d2fe; }
+body.dark-mode .status-running .status-select { background: #78350f; color: #fde68a; }
+body.dark-mode .status-testing .status-select { background: #581c87; color: #e9d5ff; }
+body.dark-mode .status-done .status-select { background: #064e3b; color: #a7f3d0; }
 
 .todo-time {
     font-size: 0.7rem;
