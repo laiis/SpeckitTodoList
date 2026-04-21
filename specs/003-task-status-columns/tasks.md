@@ -49,14 +49,14 @@
 
 ### Implementation for User Story 1
 
-- [x] T010 [US1] 實作 `TodoService` 的過濾邏輯，並整合 Logger 記錄狀態過濾行為於 `script.js` (FR-007)
-- [x] T011 [P] [US1] 實作看板佈局 CSS 於 `style.css` (Flexbox, min-width 280px, overflow-x)
-- [x] T012 [P] [US1] 實作欄位獨立垂直捲動與固定標題樣式於 `style.css`
-- [x] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 5 個狀態欄位於 `script.js`
-- [x] T014 [US1] 實作標題旁即時顯示任務計數功能於 `script.js` (FR-004)
-- [x] T014a [US1] 撰寫計數器同步測試於 `todo.test.js`：驗證新增、刪除或移動任務後，對應欄位標題旁的計數器能 100% 準確更新
-- [x] T015 [US1] 實作快速新增區域 HTML/CSS 於 `index.html` 與 `style.css` (FR-008)
-- [x] T016 [US1] 實作快速新增功能的事件監聽與 Service 呼叫於 `script.js`
+- [ ] T010 [US1] 實作 `TodoService` 的過濾邏輯，並整合 Logger 記錄狀態過濾行為於 `script.js` (FR-007)
+- [ ] T011 [P] [US1] 實作看板佈局 CSS於 `style.css` (Flexbox, min-width 280px, overflow-x)
+- [ ] T012 [P] [US1] 實作欄位獨立垂直捲動與固定標題樣式於 `style.css`
+- [ ] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 5 個狀態欄位於 `script.js` (涵蓋 FR-002/FR-003)
+- [ ] T014 [US1] 實作標題旁即時顯示任務計數功能於 `script.js` (FR-004)
+- [ ] T014a [US1] 撰寫計數器同步測試於 `todo.test.js`：驗證新增、刪除或移動任務後，對應欄位標題旁的計數器能 100% 準確更新
+- [ ] T015 [US1] 實作快速新增區域 HTML/CSS 於 `index.html` 與 `style.css` (FR-008)
+- [ ] T016 [US1] 實作快速新增功能的事件監聽與 Service 呼叫於 `script.js`
 
 **Checkpoint**: 使用者故事 1 應已完全運作並可獨立測試。
 
@@ -70,12 +70,11 @@
 
 ### Tests for User Story 2 (TDD) ⚠️
 
-- [ ] T017 [P] [US2] 撰寫「全部」視圖渲染 5 欄邏輯的測試於 `todo.test.js`
+- [ ] T017 [P] [US2] 撰寫「全部」視圖渲染 5 欄邏輯的測試於 `todo.test.js` (與 US1 共用核心邏輯)
 - [ ] T017a [P] [US2] 撰寫「已完成」模式單欄渲染邏輯的測試於 `todo.test.js` (FR-006)
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] 擴充 `KanbanPage` 渲染邏輯以支援 5 欄顯示於 `script.js`
 - [ ] T019 [US2] 處理 5 欄佈局下的橫向捲動邊界樣式於 `style.css`
 - [ ] T019a [US2] 實作「已完成 (Completed)」模式下的單欄 (Done) 渲染邏輯於 `script.js` (FR-006)
 
@@ -91,12 +90,12 @@
 
 ### Tests for User Story 3 (TDD) ⚠️
 
-- [ ] T020 [P] [US3] 撰寫行動版標籤切換邏輯的測試於 `todo.test.js` (含預設顯示「待辦」標籤之驗證)
+- [ ] T020 [P] [US3] 撰寫行動版標籤切換邏輯的測試於 `todo.test.js` (含預設顯示「待辦」標籤與狀態保持之驗證)
 
 ### Implementation for User Story 3
 
 - [ ] T021 [P] [US3] 實作行動版 Media Queries 樣式於 `style.css` (隱藏非活動欄位，顯示標籤)
-- [ ] T022 [US3] 實作頂部標籤列的動態生成與點擊事件處理於 `script.js` (FR-005，預設選中並顯示「待辦」欄位)
+- [ ] T022 [US3] 實作頂部標籤列的動態生成與點擊事件處理於 `script.js` (FR-005，預設選中並顯示「待辦」欄位，具備 Session 狀態保持)
 
 **Checkpoint**: 所有使用者故事現在均已獨立運作。
 
@@ -109,6 +108,7 @@
 - [ ] T023 [P] 執行 `npm run test:coverage` 確保覆蓋率 > 80% (憲法 IV)
 - [ ] T024 驗證切換模式時的延遲 < 200ms (憲法 III)
 - [ ] T024a 驗證在 1920x1080 解析度下，使用者無需捲動即可看到至少 4 欄內容 (SC-002)
+- [ ] T024b [P] 撰寫自動化性能基準測試，驗證看板渲染與切換延遲低於 200ms (SC-001)
 - [ ] T025 進行最後的視覺調整，確保玻璃擬態與深色模式完美呈現於所有新元件
 - [ ] T026 [P] 更新 `quickstart.md` 中的驗收檢核表
 - [ ] T027 [P] 執行安全性與 XSS 防護校閱 (符合憲法 III)，確保任務文字渲染皆透過適當脫逸或安全 DOM API
