@@ -121,11 +121,12 @@ body {
 .container {
     width: 95%;
     max-width: 1600px; /* 支援寬螢幕看板 */
-    min-height: 85vh;
+    max-height: 90vh; /* 限制最大高度以啟動捲動條 */
     padding: 2rem;
     border-radius: 24px;
     display: flex;
     flex-direction: column;
+    overflow-y: auto; /* 啟用垂直捲動條 */
 }
 
 /* T029: 容器自定義垂直捲動條 */
@@ -173,11 +174,11 @@ header {
     display: flex;
     gap: 1.25rem;
     overflow-x: auto;
-    overflow-y: hidden;
-    padding: 0.5rem 0.5rem 1.5rem 0.5rem; /* T019: 增加內邊距以改善捲動邊界體驗 */
+    overflow-y: visible; /* 允許垂直內容溢出到外層容器 */
+    padding: 0.5rem 0.5rem 1.5rem 0.5rem;
     flex: 1;
-    min-height: 0; /* 重要：允許 flex 子項縮小 */
-    scroll-padding: 0.5rem; /* 捲動停止時保留間距 */
+    min-height: 0;
+    scroll-padding: 0.5rem;
 }
 
 /* 自定義捲動條 - 橫向 */
@@ -197,14 +198,14 @@ header {
 
 /* 看板欄位 */
 .kanban-column {
-    flex: 1 0 280px; /* 彈性分配，最小 280px */
+    flex: 1 0 280px;
     max-width: 350px;
     display: flex;
     flex-direction: column;
     background: var(--filter-bg);
     border-radius: 16px;
     padding: 1rem;
-    min-height: 0;
+    /* 移除 min-height: 0 以允許內容撐開 */
     transition: transform 0.3s ease;
 }
 
@@ -238,12 +239,11 @@ header {
     font-weight: 600;
 }
 
-/* 欄位內容區域 - 獨立垂直捲動 */
+/* 欄位內容區域 - 移除獨立垂直捲動 */
 .column-content {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: visible; /* 關閉獨立捲動 */
     padding-right: 4px;
-    min-height: 0;
 }
 
 .column-content::-webkit-scrollbar {

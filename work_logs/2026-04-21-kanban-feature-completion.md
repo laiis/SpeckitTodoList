@@ -3,7 +3,12 @@
 **Feature**: 003-task-status-columns (Task Status Columns)
 
 ## Summary of Progress
-Completed the remaining implementation phases for the Kanban multi-column layout, including full status views, mobile responsiveness, and final polish.
+Completed the remaining implementation phases for the Kanban multi-column layout, including full status views, mobile responsiveness, and final polish. Additionally, refined the container scrolling behavior based on direct user feedback.
+
+### Layout Refinement (Post-Phase 6)
+- **Unified Vertical Scrolling**: Enabled a single vertical scrollbar for the main `.container.glass` (`max-height: 90vh`, `overflow-y: auto`).
+- **Removed Column Scrollbars**: Set `.column-content` and `.kanban-container` to `overflow-y: visible`, removing individual per-column vertical scrollbars.
+- **Improved Content Flow**: Ensured Kanban columns expand vertically to allow the outer container to handle all vertical overflow, providing a cleaner and more consistent user experience.
 
 ### Phase 4: Full Status View & Animations
 - Implemented "All" mode showing 5 columns: Backlog, Todo, Running, Testing, Done.
