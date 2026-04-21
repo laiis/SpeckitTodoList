@@ -133,7 +133,7 @@ if (typeof module !== 'undefined' && module.exports) {
 document.addEventListener('DOMContentLoaded', () => {
     const todoService = new TodoService();
     let currentFilter = 'all';
-    let activeTabStatus = TodoService.Status.TODO;
+    let activeTabStatus = sessionStorage.getItem('activeTabStatus') || TodoService.Status.TODO;
 
     const kanbanContainer = document.getElementById('kanban-container');
     const mobileTabs = document.getElementById('mobile-tabs');
@@ -201,6 +201,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const columnEl = createColumnElement(colDef);
             kanbanContainer.appendChild(columnEl);
         });
+
+        // A1: Visual Focus Alignment
+        if (currentFilter === 'active') {
+            const todoColumn = kanbanContainer.querySelector(`.status-${TodoService.Status.TODO}`);
+            if (todoColumn) {
+                todoColumn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+            }
+        }
     }
 
     function getActiveColumns() {
@@ -318,6 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.textContent = col.label;
             btn.addEventListener('click', () => {
                 activeTabStatus = col.status;
+                sessionStorage.setItem('activeTabStatus', activeTabStatus);
                 render();
             });
             mobileTabs.appendChild(btn);
@@ -352,10 +361,11 @@ document.addEventListener('DOMContentLoaded', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.getAttribute('data-filter');
-            // Reset active tab for mobile when changing filters
+            // Reset active tab for mobile when changing filters (A6)
             const availableCols = getActiveColumns();
             if (!availableCols.find(c => c.status === activeTabStatus)) {
                 activeTabStatus = availableCols[0].status;
+                sessionStorage.setItem('activeTabStatus', activeTabStatus);
             }
             render();
         });

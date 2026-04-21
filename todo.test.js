@@ -102,6 +102,22 @@ describe('TodoService Logic (Unit)', () => {
         expect(countAfterMove).toBe(initialCount);
         expect(runningCount).toBe(2); // Initial 1 + new 1
     });
+
+    test('T009: [US1] filterTodoList should return correct subsets', () => {
+        // Active should exclude Done
+        const activeTasks = service.filterTodoList('active');
+        expect(activeTasks.every(t => t.status !== TodoService.Status.DONE)).toBe(true);
+        expect(activeTasks.length).toBe(4); // 5 initial - 1 done
+
+        // Completed should only include Done
+        const completedTasks = service.filterTodoList('completed');
+        expect(completedTasks.every(t => t.status === TodoService.Status.DONE)).toBe(true);
+        expect(completedTasks.length).toBe(1);
+
+        // All should include everything
+        const allTasks = service.filterTodoList('all');
+        expect(allTasks.length).toBe(mockTodos.length);
+    });
 });
 
 describe('Performance Benchmark (SC-001)', () => {

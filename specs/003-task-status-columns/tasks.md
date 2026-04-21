@@ -28,7 +28,7 @@
 **Purpose**: 核心基礎設施，必須在實作任何使用者故事前完成
 
 - [x] T004 [P] 定義任務狀態枚舉 (Enum) 與初始遷移邏輯於 `script.js` (確保現有資料相容)
-- [x] T005 實作 `TodoService` 基礎類別於 `script.js`，包含任務存取與狀態變更邏輯
+- [x] T005 實作 `TodoService` 基礎類別於 `script.js`，包含任務存取與狀態變更邏輯，並依憲法 V 整合 Logger 記錄所有狀態變更與刪除操作
 - [x] T006 [P] 更新 `style.css` 中的變數，確保支援玻璃擬態與深色模式的一致性
 - [x] T007 建立看板容器 HTML 結構於 `index.html` (隱藏舊列表容器)
 
@@ -45,18 +45,18 @@
 ### Tests for User Story 1 (TDD) ⚠️
 
 - [x] T008 [P] [US1] 撰寫 `TodoService.getTasksByStatus` 的單元測試於 `todo.test.js`
-- [ ] T009 [P] [US1] 撰寫切換至「待完成」模式時欄位渲染邏輯的測試於 `todo.test.js`
+- [x] T009 [P] [US1] 撰寫切換至「待完成」模式時欄位渲染邏輯的測試於 `todo.test.js`
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] 實作 `TodoService` 的過濾邏輯，並整合 Logger 記錄狀態過濾行為於 `script.js` (FR-007)
-- [ ] T011 [P] [US1] 實作看板佈局 CSS於 `style.css` (Flexbox, min-width 280px, overflow-x)
-- [ ] T012 [P] [US1] 實作欄位獨立垂直捲動與固定標題樣式於 `style.css`
-- [ ] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 5 個狀態欄位於 `script.js` (涵蓋 FR-002/FR-003)
-- [ ] T014 [US1] 實作標題旁即時顯示任務計數功能於 `script.js` (FR-004)
-- [ ] T014a [US1] 撰寫計數器同步測試於 `todo.test.js`：驗證新增、刪除或移動任務後，對應欄位標題旁的計數器能 100% 準確更新
-- [ ] T015 [US1] 實作快速新增區域 HTML/CSS 於 `index.html` 與 `style.css` (FR-008)
-- [ ] T016 [US1] 實作快速新增功能的事件監聽與 Service 呼叫於 `script.js`
+- [x] T010 [US1] 實作 `TodoService` 的過濾邏輯，並整合 Logger 記錄狀態過濾行為於 `script.js` (FR-007)
+- [x] T011 [P] [US1] 實作看板佈局 CSS於 `style.css` (Flexbox, min-width 280px, overflow-x)
+- [x] T012 [P] [US1] 實作欄位獨立垂直捲動與固定標題樣式於 `style.css`
+- [x] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 5 個狀態欄位，並確保在「待完成」模式下預設視覺焦點對齊「待辦 (Todo)」欄位 (涵蓋 FR-002/FR-003)
+- [x] T014 [US1] 實作看板標題渲染與計數更新邏輯於 `script.js` (FR-004)
+- [x] T014a [US1] 撰寫計數器同步測試於 `todo.test.js`：驗證新增、刪除或移動任務後，對應欄位標題旁的計數器能 100% 準確更新
+- [x] T015 [US1] 實作快速新增區域 HTML/CSS 於 `index.html` 與 `style.css` (FR-008)
+- [x] T016 [US1] 實作快速新增功能的事件監聽、Service 呼叫，並整合 Logger 記錄新增任務行為於 `script.js` (FR-007)
 
 **Checkpoint**: 使用者故事 1 應已完全運作並可獨立測試。
 

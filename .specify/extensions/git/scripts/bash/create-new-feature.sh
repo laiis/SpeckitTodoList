@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # Git extension: create-new-feature.sh
 # Adapted from core scripts/bash/create-new-feature.sh for extension layout.
 # Sources common.sh from the project's installed scripts, falling back to

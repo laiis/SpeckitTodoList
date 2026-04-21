@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # update-context.sh — Gemini CLI integration: create/update GEMINI.md
 #
 # Thin wrapper that delegates to the shared update-agent-context script.

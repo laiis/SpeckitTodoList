@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # Git extension: initialize-repo.sh
 # Initialize a Git repository with an initial commit.
 # Customizable — replace this script to add .gitignore templates,
