@@ -6,3 +6,8 @@ build/
 .env*
 coverage/
 .vitest-results/
+
+# SQLite
+*.db
+*.sqlite
+*.log

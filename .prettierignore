@@ -2,8 +2,8 @@ node_modules/
 dist/
 build/
 coverage/
-*.min.js
-
-# SQLite
+package-lock.json
 *.db
 *.sqlite
+*.log
+.env*
