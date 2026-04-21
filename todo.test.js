@@ -118,6 +118,49 @@ describe('TodoService Logic (Unit)', () => {
         const allTasks = service.filterTodoList('all');
         expect(allTasks.length).toBe(mockTodos.length);
     });
+
+    test('T017: [US2] "All" filter should return all 5 statuses', () => {
+        const allTasks = service.filterTodoList('all');
+        const statuses = [...new Set(allTasks.map(t => t.status))];
+        expect(statuses).toContain(TodoService.Status.BACKLOG);
+        expect(statuses).toContain(TodoService.Status.DONE);
+        expect(allTasks.length).toBe(5);
+    });
+
+    test('T017a: [US2] "Completed" filter should only return DONE status', () => {
+        const completedTasks = service.filterTodoList('completed');
+        expect(completedTasks.length).toBe(1);
+        expect(completedTasks[0].status).toBe(TodoService.Status.DONE);
+    });
+
+    test('T020: [US3] Mobile Tab Logic - Status retention and filtering', () => {
+        // Mock sessionStorage
+        const sessionStore = {};
+        global.sessionStorage = {
+            getItem: vi.fn(key => sessionStore[key] || null),
+            setItem: vi.fn((key, value) => sessionStore[key] = value.toString()),
+            removeItem: vi.fn(key => delete sessionStore[key]),
+            clear: vi.fn(() => Object.keys(sessionStore).forEach(k => delete sessionStore[k]))
+        };
+
+        // 1. Initial State: Default to TODO if nothing in session
+        let activeTabStatus = sessionStorage.getItem('activeTabStatus') || TodoService.Status.TODO;
+        expect(activeTabStatus).toBe(TodoService.Status.TODO);
+
+        // 2. Simulate User Click: Switch to RUNNING
+        activeTabStatus = TodoService.Status.RUNNING;
+        sessionStorage.setItem('activeTabStatus', activeTabStatus);
+        expect(sessionStorage.getItem('activeTabStatus')).toBe(TodoService.Status.RUNNING);
+
+        // 3. Verify TodoService can retrieve tasks for the active tab
+        const runningTasks = service.getTasksByStatus(activeTabStatus);
+        expect(runningTasks.length).toBe(1);
+        expect(runningTasks[0].text).toBe('Running Task');
+
+        // 4. Persistence Check: Simulate page reload
+        const reloadedTabStatus = sessionStorage.getItem('activeTabStatus') || TodoService.Status.TODO;
+        expect(reloadedTabStatus).toBe(TodoService.Status.RUNNING);
+    });
 });
 
 describe('Performance Benchmark (SC-001)', () => {

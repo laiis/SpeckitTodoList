@@ -29,7 +29,7 @@
 
 - [x] T004 [P] 定義任務狀態枚舉 (Enum) 與初始遷移邏輯於 `script.js` (確保現有資料相容)
 - [x] T005 實作 `TodoService` 基礎類別於 `script.js`，包含任務存取與狀態變更邏輯，並依憲法 V 整合 Logger 記錄所有狀態變更與刪除操作
-- [x] T006 [P] 更新 `style.css` 中的變數，確保支援玻璃擬態與深色模式的一致性
+- [x] T006 [P] 更新 `style.css` 中的變數，確保支援玻璃擬態與深色模式的一體性
 - [x] T007 建立看板容器 HTML 結構於 `index.html` (隱藏舊列表容器)
 
 **Checkpoint**: 基礎設施就緒 - 現在可以並行開始使用者故事的開發
@@ -50,7 +50,7 @@
 ### Implementation for User Story 1
 
 - [x] T010 [US1] 實作 `TodoService` 的過濾邏輯，並整合 Logger 記錄狀態過濾行為於 `script.js` (FR-007)
-- [x] T011 [P] [US1] 實作看板佈局 CSS於 `style.css` (Flexbox, min-width 280px, overflow-x)
+- [x] T011 [P] [US1] 實作看板佈局 CSS 於 `style.css` (Flexbox, min-width 280px, overflow-x)
 - [x] T012 [P] [US1] 實作欄位獨立垂直捲動與固定標題樣式於 `style.css`
 - [x] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 5 個狀態欄位，並確保在「待完成」模式下預設視覺焦點對齊「待辦 (Todo)」欄位 (涵蓋 FR-002/FR-003)
 - [x] T014 [US1] 實作看板標題渲染與計數更新邏輯於 `script.js` (FR-004)
@@ -70,13 +70,13 @@
 
 ### Tests for User Story 2 (TDD) ⚠️
 
-- [ ] T017 [P] [US2] 撰寫「全部」視圖渲染 5 欄邏輯的測試於 `todo.test.js` (與 US1 共用核心邏輯)
-- [ ] T017a [P] [US2] 撰寫「已完成」模式單欄渲染邏輯的測試於 `todo.test.js` (FR-006)
+- [x] T017 [P] [US2] 撰寫「全部」視圖渲染 5 欄邏輯的測試於 `todo.test.js` (與 US1 共用核心邏輯)
+- [x] T017a [P] [US2] 撰寫「已完成」模式單欄渲染邏輯的測試於 `todo.test.js` (FR-006)
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] 處理 5 欄佈局下的橫向捲動邊界樣式於 `style.css`
-- [ ] T019a [US2] 實作「已完成 (Completed)」模式下的單欄 (Done) 渲染邏輯於 `script.js` (FR-006)
+- [x] T019 [US2] 處理 5 欄佈局下的橫向捲動邊界樣式於 `style.css`
+- [x] T019a [US2] 實作「已完成 (Completed)」模式下的單欄 (Done) 渲染邏輯於 `script.js` (FR-006)
 
 **Checkpoint**: 使用者故事 1 與 2 現在應能獨立運作。
 
@@ -90,12 +90,12 @@
 
 ### Tests for User Story 3 (TDD) ⚠️
 
-- [ ] T020 [P] [US3] 撰寫行動版標籤切換邏輯的測試於 `todo.test.js` (含預設顯示「待辦」標籤與狀態保持之驗證)
+- [x] T020 [P] [US3] 撰寫行動版標籤切換邏輯的測試於 `todo.test.js` (含預設顯示「待辦」標籤與狀態保持之驗證)
 
 ### Implementation for User Story 3
 
-- [ ] T021 [P] [US3] 實作行動版 Media Queries 樣式於 `style.css` (隱藏非活動欄位，顯示標籤)
-- [ ] T022 [US3] 實作頂部標籤列的動態生成與點擊事件處理於 `script.js` (FR-005，預設選中並顯示「待辦」欄位，具備 Session 狀態保持)
+- [x] T021 [P] [US3] 實作行動版 Media Queries 樣式於 `style.css` (隱藏非活動欄位，顯示標籤)
+- [x] T022 [US3] 實作頂部標籤列的動態生成與點擊事件處理於 `script.js` (FR-005，預設選中並顯示「待辦」欄位，具備 Session 狀態保持)
 
 **Checkpoint**: 所有使用者故事現在均已獨立運作。
 
@@ -105,6 +105,8 @@
 
 **Purpose**: 影響多個使用者故事的改進與優化
 
+- [x] T028 [P] 為 `.kanban-container` 實作自定義橫向捲動條 (Scrollbar) 樣式於 `style.css` (FR-005)
+- [x] T029 [P] 為 `.container.glass` 實作自定義垂直捲動條 (Scrollbar) 樣式於 `style.css` (符合整體視覺一致性)
 - [ ] T023 [P] 執行 `npm run test:coverage` 確保覆蓋率 > 80% (憲法 IV)
 - [ ] T024 驗證切換模式時的延遲 < 200ms (憲法 III)
 - [ ] T024a 驗證在 1920x1080 解析度下，使用者無需捲動即可看到至少 4 欄內容 (SC-002)
@@ -139,16 +141,6 @@
 
 ---
 
-## Parallel Example: User Story 1
-
-```bash
-# 同時開發 US1 的測試與佈局樣式
-Task: "撰寫 TodoService.getTasksByStatus 的單元測試於 todo.test.js"
-Task: "實作看板佈局 CSS 於 style.css"
-```
-
----
-
 ## Implementation Strategy
 
 ### MVP First (User Story 1 Only)
@@ -173,5 +165,3 @@ Task: "實作看板佈局 CSS 於 style.css"
 - 嚴格遵守 TDD，先寫測試再寫實作。
 - 每個任務完成後進行 commit (遵循 project 規範)。
 - 確保所有 DOM 操作均透過 Controller 類別管理，業務邏輯保留在 Service 中。
-業務邏輯保留在 Service 中。
-rvice 中。

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # Common functions and variables for all scripts
 
 # Find repository root by searching upward for .specify directory
