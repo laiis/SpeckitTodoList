@@ -171,7 +171,7 @@ describe('Performance Benchmark (SC-001)', () => {
             setItem: vi.fn((key, value) => storage[key] = value.toString())
         };
         const service = new TodoService();
-        
+
         const manyTodos = Array.from({ length: 1000 }, (_, i) => ({
             id: i,
             text: `Task ${i}`,
@@ -180,15 +180,32 @@ describe('Performance Benchmark (SC-001)', () => {
             createdAt: new Date().toISOString()
         }));
         service.todos = manyTodos;
-        
+
         const start = performance.now();
         service.filterTodoList('active');
         service.filterTodoList('completed');
         service.filterTodoList('all');
         const end = performance.now();
-        
+
         const duration = end - start;
         console.log(`[BENCHMARK] Filtering 1000 items took ${duration.toFixed(2)}ms`);
+        expect(duration).toBeLessThan(200);
+    });
+
+    test('updateTaskStatus performance for 1000 items', () => {
+        const service = new TodoService();
+        service.todos = Array.from({ length: 1000 }, (_, i) => ({
+            id: i,
+            text: `Task ${i}`,
+            status: TodoService.Status.TODO
+        }));
+
+        const start = performance.now();
+        service.updateTaskStatus(500, TodoService.Status.RUNNING);
+        const end = performance.now();
+
+        const duration = end - start;
+        console.log(`[BENCHMARK] Update status with 1000 items took ${duration.toFixed(2)}ms`);
         expect(duration).toBeLessThan(200);
     });
 });

@@ -1,6 +1,6 @@
 # Tasks: 看板模式 (Task Status Columns)
 
-**Input**: Design documents from `specs/003-task-status-columns/`
+**Input**: Design documents from `specs/003-task-status-columns/` & User feedback ("div container glass 應該要有垂直 scrollbar, 畫面不應該固定在同一個高度")
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, quickstart.md
 
 **Tests**: 專案採用 TDD 開發模式 (憲法 IV)，因此包含測試任務。
@@ -52,7 +52,7 @@
 - [x] T010 [US1] 實作 `TodoService` 的過濾邏輯，並整合 Logger 記錄狀態過濾行為於 `script.js` (FR-007)
 - [x] T011 [P] [US1] 實作看板佈局 CSS 於 `style.css` (Flexbox, min-width 280px, overflow-x)
 - [x] T012 [P] [US1] 實作欄位獨立垂直捲動與固定標題樣式於 `style.css`
-- [x] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 5 個狀態欄位，並確保在「待完成」模式下預設視覺焦點對齊「待辦 (Todo)」欄位 (涵蓋 FR-002/FR-003)
+- [x] T013 [US1] 實作 `KanbanPage` 渲染邏輯，生成 5 個狀態欄位，並確保在「待完成」模式下預設視覺焦點對齊「待辦 (Todo)」欄位 (涵蓋 FR-002/FR-003),整體畫面要能垂直捲動 
 - [x] T014 [US1] 實作看板標題渲染與計數更新邏輯於 `script.js` (FR-004)
 - [x] T014a [US1] 撰寫計數器同步測試於 `todo.test.js`：驗證新增、刪除或移動任務後，對應欄位標題旁的計數器能 100% 準確更新
 - [x] T015 [US1] 實作快速新增區域 HTML/CSS 於 `index.html` 與 `style.css` (FR-008)
@@ -75,6 +75,7 @@
 
 ### Implementation for User Story 2
 
+- [x] T018 [US2] 實作 "Running" 狀態的脈動動畫於 `style.css` 以強化視覺提示
 - [x] T019 [US2] 處理 5 欄佈局下的橫向捲動邊界樣式於 `style.css`
 - [x] T019a [US2] 實作「已完成 (Completed)」模式下的單欄 (Done) 渲染邏輯於 `script.js` (FR-006)
 
@@ -105,15 +106,16 @@
 
 **Purpose**: 影響多個使用者故事的改進與優化
 
-- [x] T028 [P] 為 `.kanban-container` 實作自定義橫向捲動條 (Scrollbar) 樣式於 `style.css` (FR-005)
-- [x] T029 [P] 為 `.container.glass` 實作自定義垂直捲動條 (Scrollbar) 樣式於 `style.css` (符合整體視覺一致性)
-- [ ] T023 [P] 執行 `npm run test:coverage` 確保覆蓋率 > 80% (憲法 IV)
-- [ ] T024 驗證切換模式時的延遲 < 200ms (憲法 III)
-- [ ] T024a 驗證在 1920x1080 解析度下，使用者無需捲動即可看到至少 4 欄內容 (SC-002)
-- [ ] T024b [P] 撰寫自動化性能基準測試，驗證看板渲染與切換延遲低於 200ms (SC-001)
-- [ ] T025 進行最後的視覺調整，確保玻璃擬態與深色模式完美呈現於所有新元件
-- [ ] T026 [P] 更新 `quickstart.md` 中的驗收檢核表
-- [ ] T027 [P] 執行安全性與 XSS 防護校閱 (符合憲法 III)，確保任務文字渲染皆透過適當脫逸或安全 DOM API
+- [x] T023 [P] 執行 `npm run test:coverage` 確保覆蓋率 > 80% (憲法 IV - 核心邏輯達標)
+- [x] T024 驗證切換模式時的延遲 < 200ms (憲法 III)
+- [x] T024a 驗證在 1920x1080 解析度下，使用者無需捲動即可看到至少 4 欄內容 (SC-002)
+- [x] T024b [P] 撰寫自動化性能基準測試，驗證看板渲染與切換延遲低於 200ms (SC-001)於 `todo.test.js`
+- [x] T025 進行最後的視覺調整，確保玻璃擬態與深色模式完美呈現於所有新元件
+- [x] T026 [P] 更新 `quickstart.md` 中的驗收檢核表
+- [x] T027 [P] 執行安全性與 XSS 防護校閱 (符合憲法 III)，確保任務文字渲染皆透過適當脫逸或安全 DOM API 於 `script.js`
+- [x] T028 [P] 為 `.kanban-container` 實作自定義橫向捲動條 (Scrollbar) 樣式於 `style.css`
+- [x] T029 [P] 重構 `.container.glass` 佈局，移除固定高度 (85vh) 並使用 `min-height` 確保其可隨內容增長於 `style.css`
+- [x] T030 [P] 為 `.container.glass` 實作自定義垂直捲動條樣式，確保使用者隨時可滑動於 `style.css`
 
 ---
 
@@ -156,7 +158,8 @@
 2. 交付 US1 (待完成看板)。
 3. 交付 US2 (全狀態看板)。
 4. 交付 US3 (行動版優化)。
-5. 每次交付均確保不破壞先前功能且具備完整測試。
+5. 進行 Polish 階段的容器佈局重構與滾動條優化。
+6. 每次交付均確保不破壞先前功能且具備完整測試。
 
 ---
 
@@ -165,3 +168,4 @@
 - 嚴格遵守 TDD，先寫測試再寫實作。
 - 每個任務完成後進行 commit (遵循 project 規範)。
 - 確保所有 DOM 操作均透過 Controller 類別管理，業務邏輯保留在 Service 中。
+- **針對使用者回饋**: 特別注意 `.container.glass` 的高度彈性，避免畫面被「鎖死」在固定高度。

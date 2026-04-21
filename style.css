@@ -121,12 +121,11 @@ body {
 .container {
     width: 95%;
     max-width: 1600px; /* 支援寬螢幕看板 */
-    height: 85vh;
+    min-height: 85vh;
     padding: 2rem;
     border-radius: 24px;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* T029: 允許容器垂直捲動 */
 }
 
 /* T029: 容器自定義垂直捲動條 */
@@ -549,18 +548,13 @@ header p {
 }
 
 /* 各狀態顏色 - 優化對比度 */
-.status-backlog .status-select { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
-.status-todo .status-select { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; }
-.status-running .status-select { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-.status-testing .status-select { background: #f3e8ff; color: #6b21a8; border-color: #d8b4fe; }
-.status-done .status-select { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+.status-backlog .status-select { background: var(--status-backlog-bg); color: var(--status-backlog-text); border-color: var(--glass-border); }
+.status-todo .status-select { background: var(--status-todo-bg); color: var(--status-todo-text); border-color: var(--glass-border); }
+.status-running .status-select { background: var(--status-running-bg); color: var(--status-running-text); border-color: var(--glass-border); }
+.status-testing .status-select { background: var(--status-testing-bg); color: var(--status-testing-text); border-color: var(--glass-border); }
+.status-done .status-select { background: var(--status-done-bg); color: var(--status-done-text); border-color: var(--glass-border); }
 
-/* T014: 深色模式狀態顏色優化 */
-body.dark-mode .status-backlog .status-select { background: #334155; color: #e2e8f0; border-color: #475569; }
-body.dark-mode .status-todo .status-select { background: #1e1b4b; color: #c7d2fe; border-color: #3730a3; }
-body.dark-mode .status-running .status-select { background: #451a03; color: #fde68a; border-color: #92400e; }
-body.dark-mode .status-testing .status-select { background: #2e1065; color: #e9d5ff; border-color: #6b21a8; }
-body.dark-mode .status-done .status-select { background: #064e3b; color: #a7f3d0; border-color: #065f46; }
+/* T014: 深色模式狀態顏色優化 - 變數已在 :root 中處理 */
 
 /* 深色模式 Running 脈動顏色 */
 body.dark-mode .status-running .status-select {

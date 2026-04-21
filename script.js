@@ -117,6 +117,26 @@ class TodoService {
     getTasksByStatus(status) {
         return this.todos.filter(t => t.status === status);
     }
+
+    deleteTask(id) {
+        const taskToDelete = this.todos.find(t => t.id === id);
+        if (taskToDelete) {
+            Logger.info(`Deleting task ${id}: ${taskToDelete.text}`);
+            this.todos = this.todos.filter(t => t.id !== id);
+            this.save();
+        }
+        return this.todos;
+    }
+
+    clearCompleted() {
+        const completedCount = this.todos.filter(t => t.status === TodoService.Status.DONE).length;
+        if (completedCount > 0) {
+            Logger.info(`Clearing ${completedCount} completed tasks`);
+            this.todos = this.todos.filter(t => t.status !== TodoService.Status.DONE);
+            this.save();
+        }
+        return this.todos;
+    }
 }
 
 function formatDateTime(date) {
@@ -259,45 +279,77 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = document.createElement('div');
         item.className = `todo-item ${todo.completed ? 'completed' : ''}`;
         
-        let timeLabel = `建立於: ${formatDateTime(todo.createdAt)}`;
+        let timeLabelText = `建立於: ${formatDateTime(todo.createdAt)}`;
         if (todo.status === TodoService.Status.TESTING && todo.testedAt) {
-            timeLabel = `測試於: ${formatDateTime(todo.testedAt)}`;
+            timeLabelText = `測試於: ${formatDateTime(todo.testedAt)}`;
         } else if (todo.completed && todo.completedAt) {
-            timeLabel = `完成於: ${formatDateTime(todo.completedAt)}`;
+            timeLabelText = `完成於: ${formatDateTime(todo.completedAt)}`;
         }
 
         const priorityLabels = { low: '低', medium: '中', high: '高' };
         
-        item.innerHTML = `
-            <input type="checkbox" ${todo.completed ? 'checked' : ''}>
-            <div class="todo-content">
-                <div class="todo-header-row">
-                    <span class="priority-badge priority-${todo.priority || 'medium'}">${priorityLabels[todo.priority || 'medium']}</span>
-                    <select class="status-select">
-                        ${columnDefinitions.map(opt => `<option value="${opt.status}" ${todo.status === opt.status ? 'selected' : ''}>${opt.label}</option>`).join('')}
-                    </select>
-                    <input type="text" class="todo-text" value="${todo.text}">
-                </div>
-                <span class="todo-time">${timeLabel}</span>
-            </div>
-            <button class="delete-btn">&times;</button>
-        `;
+        // Create components safely
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = todo.completed;
+
+        const todoContent = document.createElement('div');
+        todoContent.className = 'todo-content';
+
+        const headerRow = document.createElement('div');
+        headerRow.className = 'todo-header-row';
+
+        const priorityBadge = document.createElement('span');
+        priorityBadge.className = `priority-badge priority-${todo.priority || 'medium'}`;
+        priorityBadge.textContent = priorityLabels[todo.priority || 'medium'];
+
+        const statusSelect = document.createElement('select');
+        statusSelect.className = 'status-select';
+        columnDefinitions.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.status;
+            option.textContent = opt.label;
+            option.selected = todo.status === opt.status;
+            statusSelect.appendChild(option);
+        });
+
+        const textInput = document.createElement('input');
+        textInput.type = 'text';
+        textInput.className = 'todo-text';
+        textInput.value = todo.text;
+
+        const timeLabel = document.createElement('span');
+        timeLabel.className = 'todo-time';
+        timeLabel.textContent = timeLabelText;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.innerHTML = '&times;'; // Safe for static entities
+
+        // Assembly
+        headerRow.appendChild(priorityBadge);
+        headerRow.appendChild(statusSelect);
+        headerRow.appendChild(textInput);
+        
+        todoContent.appendChild(headerRow);
+        todoContent.appendChild(timeLabel);
+
+        item.appendChild(checkbox);
+        item.appendChild(todoContent);
+        item.appendChild(deleteBtn);
 
         // Listeners
-        const checkbox = item.querySelector('input[type="checkbox"]');
         checkbox.addEventListener('change', () => {
-            const newStatus = todo.completed ? TodoService.Status.TODO : TodoService.Status.DONE;
+            const newStatus = checkbox.checked ? TodoService.Status.DONE : TodoService.Status.TODO;
             todoService.updateTaskStatus(todo.id, newStatus);
             render();
         });
 
-        const statusSelect = item.querySelector('.status-select');
         statusSelect.addEventListener('change', (e) => {
             todoService.updateTaskStatus(todo.id, e.target.value);
             render();
         });
 
-        const textInput = item.querySelector('.todo-text');
         textInput.addEventListener('blur', () => {
             if (textInput.value.trim() !== todo.text) {
                 todoService.updateTaskProperty(todo.id, 'text', textInput.value.trim());
@@ -305,10 +357,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const deleteBtn = item.querySelector('.delete-btn');
         deleteBtn.addEventListener('click', () => {
-            todoService.todos = todoService.todos.filter(t => t.id !== todo.id);
-            todoService.save();
+            todoService.deleteTask(todo.id);
             render();
         });
 
@@ -373,8 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (clearCompletedBtn) {
         clearCompletedBtn.addEventListener('click', () => {
-            todoService.todos = todoService.todos.filter(t => t.status !== TodoService.Status.DONE);
-            todoService.save();
+            todoService.clearCompleted();
             render();
         });
     }
