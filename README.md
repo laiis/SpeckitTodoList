@@ -9,31 +9,48 @@
 npm install
 ```
 
-### 2. 啟動後端伺服器 (預設連接埠 3000)
+### 2. 環境配置 (必要)
+系統支援透過 `.env` 檔案進行配置。請參考 `.env.example` 建立您的本地設定檔：
 ```bash
-node server/app.js
+cp .env.example .env
+# 編輯 .env 填入您的設定值
 ```
 
-### 3. 啟動前端開發環境 (Vite)
+### 3. 啟動伺服器
+- **開發模式 (Development)**:
+  ```bash
+  npm run dev:server
+  ```
+- **生產模式 (Production)**:
+  ```bash
+  npm start
+  ```
+  *註：在生產模式下，若未設定 `JWT_SECRET` 系統將強制終止啟動以確保安全。*
+
+### 4. 啟動前端開發環境 (Vite)
 ```bash
 npm run dev
 ```
 存取路徑：`http://localhost:5173`
 
-## 🌐 環境配置
+---
 
-系統支援透過 `.env` 檔案進行環境配置。請參考 `.env.example` 建立您的本地設定檔：
+## 🌐 環境變數說明
 
-- `PORT`: 伺服器執行的連接埠 (預設: `3000`)
-- `JWT_SECRET`: JWT 簽章用的密鑰 (生產環境務必修改)
-- `ADMIN_PASSWORD`: 預設管理員帳號密碼 (預設: `admin`)
-- `DB_PATH`: SQLite 資料庫檔案路徑 (預設: `database.sqlite`)
-- `NODE_ENV`: 執行環境模式 (`development`, `production`, 或 `test`)
+系統採用統一配置層 (`server/config/index.js`) 管理環境變數：
 
-### 快速設定
+| 變數名稱 | 說明 | 預設值 (開發/測試) | 生產環境要求 |
+| :--- | :--- | :--- | :--- |
+| `PORT` | 伺服器執行連接埠 | `3000` | 可選 |
+| `JWT_SECRET` | JWT 簽章用的機敏金鑰 | `dev-secret-key` | **強制要求** |
+| `ADMIN_PASSWORD`| 系統管理員初始密碼 | `admin` | 建議修改 |
+| `DB_PATH` | SQLite 資料庫檔案路徑 | `database.sqlite` | 建議修改 |
+| `NODE_ENV` | 執行環境模式 | `development` | `production` |
+
+### 安全性檢查
+開發過程中，可執行以下指令掃描原始碼中是否殘留硬編碼的機敏資料：
 ```bash
-cp .env.example .env
-# 編輯 .env 填入您的設定值
+npm run scan-secrets
 ```
 
 ---

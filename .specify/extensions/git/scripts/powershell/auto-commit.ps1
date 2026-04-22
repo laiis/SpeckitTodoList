@@ -46,76 +46,73 @@ try {
 
 # Read per-command config from git-config.yml
 $configFile = Join-Path $repoRoot ".specify/extensions/git/git-config.yml"
-$enabled = $false
+$enabled = $null  # Use $null to detect if the key was found
 $commitMsg = ""
 
 if (Test-Path $configFile) {
-    # Parse YAML to find auto_commit section
-    $inAutoCommit = $false
-    $inEvent = $false
-    $defaultEnabled = $false
+# Parse YAML to find auto_commit section
+$inAutoCommit = $false
+$inEvent = $false
+$defaultEnabled = $false
 
-    foreach ($line in Get-Content $configFile) {
-        # Detect auto_commit: section
-        if ($line -match '^auto_commit:') {
-            $inAutoCommit = $true
-            $inEvent = $false
+foreach ($line in Get-Content $configFile) {
+    # Detect auto_commit: section
+    if ($line -match '^auto_commit:') {
+        $inAutoCommit = $true
+        continue
+    }
+
+    # Exit auto_commit section on next top-level key (must be at start of line)
+    if ($inAutoCommit -and $line -match '^[a-zA-Z]') {
+        $inAutoCommit = $false
+        $inEvent = $false
+        break
+    }
+
+    if ($inAutoCommit) {
+        # Check default key
+        if ($line -match '^\s+default:\s*(.+)$') {
+            $val = $matches[1].Trim().ToLower()
+            if ($val -eq 'true') { $defaultEnabled = $true }
+        }
+
+        # Detect our event subsection (2-space indent)
+        if ($line -match "^\s{2}${EventName}:") {
+            $inEvent = $true
             continue
         }
 
-        # Exit auto_commit section on next top-level key
-        if ($inAutoCommit -and $line -match '^[a-z]') {
-            break
-        }
-
-        if ($inAutoCommit) {
-            # Check default key
-            if ($line -match '^\s+default:\s*(.+)$') {
-                $val = $matches[1].Trim().ToLower()
-                if ($val -eq 'true') { $defaultEnabled = $true }
-            }
-
-            # Detect our event subsection
-            if ($line -match "^\s+${EventName}:") {
-                $inEvent = $true
+        # Inside our event subsection
+        if ($inEvent) {
+            # Exit on next sibling key (2-space indent, not 4+)
+            if ($line -match '^\s{2}[a-z]' -and $line -notmatch '^\s{4}') {
+                $inEvent = $false
                 continue
             }
-
-            # Inside our event subsection
-            if ($inEvent) {
-                # Exit on next sibling key (2-space indent, not 4+)
-                if ($line -match '^\s{2}[a-z]' -and $line -notmatch '^\s{4}') {
-                    $inEvent = $false
-                    continue
-                }
-                if ($line -match '\s+enabled:\s*(.+)$') {
-                    $val = $matches[1].Trim().ToLower()
-                    if ($val -eq 'true') { $enabled = $true }
-                    if ($val -eq 'false') { $enabled = $false }
-                }
-                if ($line -match '\s+message:\s*(.+)$') {
-                    $commitMsg = $matches[1].Trim() -replace '^["'']' -replace '["'']$'
-                }
+            if ($line -match '^\s{4}enabled:\s*(.+)$') {
+                $val = $matches[1].Trim().ToLower()
+                if ($val -eq 'true') { $enabled = $true }
+                elseif ($val -eq 'false') { $enabled = $false }
+            }
+            if ($line -match '^\s{4}message:\s*(.+)$') {
+                $commitMsg = $matches[1].Trim() -replace '^["'']' -replace '["'']$'
             }
         }
     }
+}
 
-    # If event-specific key not found, use default
-    if (-not $enabled -and $defaultEnabled) {
-        $hasEventKey = Select-String -Path $configFile -Pattern "^\s*${EventName}:" -Quiet
-        if (-not $hasEventKey) {
-            $enabled = $true
-        }
-    }
+# Fallback to default if event-specific key was not found or not set
+if ($enabled -eq $null) {
+    $enabled = $defaultEnabled
+}
 } else {
-    # No config file — auto-commit disabled by default
-    exit 0
+# No config file — auto-commit disabled by default
+exit 0
 }
 
-if (-not $enabled) {
-    exit 0
+if ($enabled -ne $true) {
+exit 0
 }
-
 # Check if there are changes to commit
 $diffHead = git diff --quiet HEAD 2>$null; $d1 = $LASTEXITCODE
 $diffCached = git diff --cached --quiet 2>$null; $d2 = $LASTEXITCODE
