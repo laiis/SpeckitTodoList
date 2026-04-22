@@ -42,6 +42,7 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
+    logger.error(`Login error for user [${username}]: ${error.message}\n${error.stack}`);
     if (error.message === 'Account is temporarily locked') {
       return res.status(403).json({ error: error.message });
     }
