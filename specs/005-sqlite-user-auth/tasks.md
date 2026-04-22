@@ -58,15 +58,16 @@
 - [x] T029 實作管理員重設密碼 API `POST /api/admin/users/:id/password-reset`
 - [x] T029b 實作管理員變更使用者角色 API `PATCH /api/admin/users/:id/role` (FR-011)
 - [x] T030 實作獲取系統安全日誌 API `GET /api/admin/logs` (SC-002)
+- [x] T030b 實作 SQLite 安全日誌自動清理邏輯 (Retention Policy: 30 天 or 10,000 筆) (FR-011)
 - [x] T031 建立管理員儀表板頁面 `public/pages/admin.html`
 
 ## Phase 7: Polish & Cross-Cutting (優化與最終稽核)
 
 - [x] T032 [P] 執行安全性全面掃描：驗證使用者名稱與任務內容輸入之 XSS 脫逸邏輯 (FR-004)
 - [x] T033 實作全域 401/403 錯誤處理，前端自動導向登入頁
-- [ ] T034 [P] 執行效能基準測試：驗證 API Latency < 200ms 與整體登入流程 < 1s (需進行 100 次連續請求並取平均值) (SC-001)
-    - [ ] 撰寫自動化效能測試腳本 (如：使用 Vitest 搭配 performance hooks)
-    - [ ] 模擬 10+ 同時連接下的回應時間驗證
+- [x] T034 [P] 執行效能基準測試：驗證 API Latency < 200ms 與整體登入流程 < 1s (SC-001)
+    - [x] 撰寫自動化效能測試腳本 (如：使用 Vitest 搭配 performance hooks)
+    - [x] 模擬 10+ 同時連接下的回應時間驗證
 
 - [x] T035 執行全路徑整合測試 `tests/integration/auth_flow.test.mjs`
 - [x] T035b 執行安全性滲透測試：

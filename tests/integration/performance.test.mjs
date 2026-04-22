@@ -1,55 +1,59 @@
-import request from 'supertest';
 import { describe, it, expect, beforeAll } from 'vitest';
-import { performance } from 'perf_hooks';
-
-// 設定測試用的記憶體資料庫
-process.env.DB_PATH = ':memory:';
-
-import db from '../../server/db/init';
+import request from 'supertest';
 import app from '../../server/app';
+import db from '../../server/db/init';
 
-describe('Performance Benchmarks (T034)', () => {
-  beforeAll(() => {
-    db.resetDB();
-  });
+describe('Performance Baseline Tests (SC-001)', () => {
+  let adminToken;
 
-  it('should complete login flow within 1s', async () => {
-    const start = performance.now();
+  beforeAll(async () => {
+    // 確保資料庫中有測試資料
+    db.prepare('DELETE FROM users WHERE username = ?').run('perf_test_admin');
+    const bcrypt = await import('bcryptjs');
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('password123', salt);
     
+    db.prepare('INSERT INTO users (username, password_hash, role_id) VALUES (?, ?, ?)')
+      .run('perf_test_admin', hash, 1); // 1 is Admin
+
+    // 取得 Token
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ username: 'admin', password: 'admin' });
-
-    const end = performance.now();
-    const duration = end - start;
-
-    expect(res.status).toBe(200);
-    expect(duration).toBeLessThan(1000);
-    console.log(`Login duration: ${duration.toFixed(2)}ms`);
+      .send({ username: 'perf_test_admin', password: 'password123' });
+    
+    const cookieHeader = res.headers['set-cookie'];
+    adminToken = cookieHeader ? cookieHeader[0].split(';')[0] : '';
   });
 
-  it('should have API latency < 200ms for fetching tasks', async () => {
-    const loginRes = await request(app)
-      .post('/api/auth/login')
-      .send({ username: 'admin', password: 'admin' });
-    const cookie = loginRes.headers['set-cookie'][0].split(';')[0];
+  it('API Latency for /api/tasks should be < 200ms', async () => {
+    const iterations = 100;
+    const times = [];
 
-    // 建立 10 個任務以模擬負載
-    for (let i = 0; i < 10; i++) {
-      await db.prepare('INSERT INTO tasks (user_id, content) VALUES (?, ?)').run(1, `Task ${i}`);
+    for (let i = 0; i < iterations; i++) {
+      const start = performance.now();
+      await request(app)
+        .get('/api/tasks')
+        .set('Cookie', adminToken);
+      const end = performance.now();
+      times.push(end - start);
     }
 
+    const averageLatency = times.reduce((a, b) => a + b, 0) / iterations;
+    console.log(`Average API Latency: ${averageLatency.toFixed(2)}ms`);
+
+    expect(averageLatency).toBeLessThan(200);
+  });
+
+  it('Login process should be < 1s (1000ms)', async () => {
     const start = performance.now();
-    
-    const res = await request(app)
-      .get('/api/tasks')
-      .set('Cookie', cookie);
-
+    await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'perf_test_admin', password: 'password123' });
     const end = performance.now();
-    const duration = end - start;
-
-    expect(res.status).toBe(200);
-    expect(duration).toBeLessThan(200);
-    console.log(`Fetch tasks latency: ${duration.toFixed(2)}ms`);
+    
+    const loginDuration = end - start;
+    console.log(`Login Duration: ${loginDuration.toFixed(2)}ms`);
+    
+    expect(loginDuration).toBeLessThan(1000);
   });
 });

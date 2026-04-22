@@ -56,26 +56,36 @@ const adminService = {
     
     try {
       const content = fs.readFileSync(logPath, 'utf8');
-      // 將日誌內容轉換為陣列，每行一個項目
-      return content.split('\n')
-        .filter(line => line.trim() !== '')
-        .map(line => {
-          // 簡單解析日誌格式: [timestamp] [level] message
-          const match = line.match(/^\[([^\]]+)\] \[([^\]]+)\] (.*)$/);
-          if (match) {
-            return {
-              timestamp: match[1],
-              level: match[2],
-              message: match[3]
-            };
-          }
-          return { message: line };
-        })
-        .reverse(); // 最新的日誌在前
+      const lines = content.split('\n').filter(line => line.trim() !== '');
+      
+      // 實作自動清理邏輯: 保留最近 10,000 筆 (FR-011)
+      if (lines.length > 10000) {
+        const keptLines = lines.slice(-10000);
+        fs.writeFileSync(logPath, keptLines.join('\n') + '\n', 'utf8');
+        logger.info(`Retention Policy: Cleaned security.log to 10,000 lines`);
+        return keptLines.reverse().map(this._parseLogLine);
+      }
+      
+      return lines.reverse().map(this._parseLogLine);
     } catch (err) {
       logger.error('Failed to read security logs: ' + err.message);
       return [];
     }
+  },
+
+  /**
+   * 輔助函式：解析單行日誌格式 [timestamp] [level] message
+   */
+  _parseLogLine(line) {
+    const match = line.match(/^\[([^\]]+)\] \[([^\]]+)\] (.*)$/);
+    if (match) {
+      return {
+        timestamp: match[1],
+        level: match[2],
+        message: match[3]
+      };
+    }
+    return { message: line };
   }
 };
 
