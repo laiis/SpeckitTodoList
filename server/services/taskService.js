@@ -35,12 +35,15 @@ const taskService = {
     const result = db.prepare('INSERT INTO tasks (user_id, content, status) VALUES (?, ?, ?)')
       .run(userId, sanitizedContent, status);
     
-    return {
+    const newTask = {
       id: result.lastInsertRowid,
       content: sanitizedContent,
       status,
       user_id: userId
     };
+
+    logger.info(`Task created: [ID: ${newTask.id}] by [User: ${userId}]. Content: ${sanitizedContent.substring(0, 50)}${sanitizedContent.length > 50 ? '...' : ''}`);
+    return newTask;
   },
 
   /**

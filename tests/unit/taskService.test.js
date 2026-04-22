@@ -1,10 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
 import taskService from '../../server/services/taskService';
 import db from '../../server/db/init';
 
 describe('TaskService - Data Isolation', () => {
   const USER_A = 100;
   const USER_B = 200;
+
+  beforeAll(() => {
+    db.resetDB();
+  });
 
   beforeEach(() => {
     db.prepare('DELETE FROM tasks').run();
@@ -15,6 +19,12 @@ describe('TaskService - Data Isolation', () => {
       .run(USER_A, 'userA', 'hash', 3);
     db.prepare('INSERT INTO users (id, username, password_hash, role_id) VALUES (?, ?, ?, ?)')
       .run(USER_B, 'userB', 'hash', 3);
+
+    // DEBUG: 驗證資料
+    const roles = db.prepare('SELECT * FROM roles').all();
+    const users = db.prepare('SELECT id, username, role_id FROM users').all();
+    console.log('[DEBUG] Roles:', roles);
+    console.log('[DEBUG] Users:', users);
   });
 
   it('使用者應僅能取得自己的任務', async () => {
@@ -48,5 +58,18 @@ describe('TaskService - Data Isolation', () => {
     
     const verifyTask = db.prepare('SELECT id FROM tasks WHERE id = ?').get(taskA.id);
     expect(verifyTask).toBeDefined();
+  });
+
+  it('應正確儲存並讀取包含換行符的任務內容', async () => {
+    const multiLineContent = 'Line 1\nLine 2\nLine 3';
+    const task = await taskService.createTask(USER_A, multiLineContent);
+    
+    expect(task.content).toBe(multiLineContent);
+    
+    const tasks = await taskService.getTasks(USER_A);
+    expect(tasks[0].content).toBe(multiLineContent);
+    
+    const dbTask = db.prepare('SELECT content FROM tasks WHERE id = ?').get(task.id);
+    expect(dbTask.content).toBe(multiLineContent);
   });
 });

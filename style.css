@@ -271,6 +271,9 @@ header {
     font-size: 0.85rem;
     outline: none;
     transition: all 0.3s ease;
+    resize: none;
+    white-space: pre-wrap;
+    overflow-y: auto;
 }
 
 .quick-add-input:focus {
@@ -374,6 +377,9 @@ header p {
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
+    resize: none;
+    white-space: pre-wrap;
+    overflow-y: auto;
 }
 
 #todo-input::placeholder {
@@ -493,15 +499,36 @@ header p {
     margin-bottom: 4px;
 }
 
-.todo-item .todo-text {
+.todo-item .todo-text-display {
     flex: 1;
     min-width: 150px;
     font-size: 0.95rem;
     color: var(--text-main);
     cursor: pointer;
-    border: none;
-    background: transparent;
     padding: 2px 4px;
+    white-space: pre-wrap;
+    /* T013: 實作 3 行縮略 */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+    max-height: calc(1.5 * 3em);
+}
+
+.todo-item .todo-text.edit-mode {
+    flex: 1;
+    min-width: 150px;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    background: var(--item-bg);
+    padding: 4px;
+    resize: none;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    outline: none;
 }
 
 /* 狀態下拉選單樣式 */

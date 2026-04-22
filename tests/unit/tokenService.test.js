@@ -1,8 +1,17 @@
-import { describe, it, expect, vi } from 'vitest';
-const tokenService = require('../../server/services/tokenService');
-const config = require('../../server/config');
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('TokenService - Environment Variables', () => {
+  let tokenService;
+  let config;
+
+  beforeEach(() => {
+    vi.resetModules();
+    process.env.JWT_SECRET = 'my-secret';
+    process.env.JWT_EXPIRES_IN = '24h';
+    tokenService = require('../../server/services/tokenService');
+    config = require('../../server/config');
+  });
+
   it('T020 - 應正確引用 AppConfig.jwt.secret 簽發 Token', () => {
     const payload = { id: 1, username: 'testuser' };
     const token = tokenService.generateToken(payload);
@@ -14,7 +23,6 @@ describe('TokenService - Environment Variables', () => {
   });
 
   it('T020 - 應正確引用 AppConfig.jwt.expiresIn 設定有效期', () => {
-    // 由於 expiresIn 是在 jwt.sign 中使用的，我們可以透過 vi 模擬 jwt.sign 來驗證參數
     const jwt = require('jsonwebtoken');
     const spy = vi.spyOn(jwt, 'sign');
     
@@ -22,8 +30,8 @@ describe('TokenService - Environment Variables', () => {
     
     expect(spy).toHaveBeenCalledWith(
       expect.anything(),
-      config.jwt.secret,
-      expect.objectContaining({ expiresIn: config.jwt.expiresIn })
+      'my-secret',
+      expect.objectContaining({ expiresIn: '24h' })
     );
     
     spy.mockRestore();

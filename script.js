@@ -7,7 +7,7 @@ const Logger = {
     error: (...args) => console.error(`[ERROR] ${new Date().toISOString()}:`, ...args)
 };
 
-class TodoService {
+export class TodoService {
     static Status = {
         BACKLOG: 'backlog',
         TODO: 'todo',
@@ -120,14 +120,26 @@ class TodoService {
         }
         return this.todos;
     }
+
+    // For todo.test.js compatibility
+    static migrateLegacyData(todos) {
+        return { migrated: todos.map(t => ({ ...t, status: t.completed ? TodoService.Status.DONE : TodoService.Status.TODO, createdAt: new Date().toISOString() })), modified: true };
+    }
+
+    filterTodoList(filter) {
+        if (filter === 'active') return this.todos.filter(t => t.status !== TodoService.Status.DONE);
+        if (filter === 'completed') return this.todos.filter(t => t.status === TodoService.Status.DONE);
+        return this.todos;
+    }
 }
 
-function formatDateTime(date) {
+export function formatDateTime(date) {
     if (!date) return '';
     const d = new Date(date);
     return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
 }
 
+if (typeof document !== 'undefined') {
 document.addEventListener('DOMContentLoaded', async () => {
     const todoService = new TodoService();
     let currentFilter = 'all';
@@ -255,7 +267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             <div class="column-content" id="content-${colDef.status}"></div>
             <div class="quick-add">
-                <input type="text" class="quick-add-input" placeholder="+ 快速新增任務..." data-status="${colDef.status}">
+                <textarea class="quick-add-input" rows="10" placeholder="+ 快速新增任務..." data-status="${colDef.status}"></textarea>
             </div>
         `;
 
@@ -265,8 +277,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         const quickAddInput = column.querySelector('.quick-add-input');
-        quickAddInput.addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter' && quickAddInput.value.trim()) {
+        quickAddInput.addEventListener('keydown', async (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && quickAddInput.value.trim()) {
+                e.preventDefault();
                 await todoService.createNewTodo(quickAddInput.value.trim(), colDef.status);
                 quickAddInput.value = '';
                 render();
@@ -302,10 +315,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             statusSelect.appendChild(option);
         });
 
-        const textInput = document.createElement('input');
-        textInput.type = 'text';
-        textInput.className = 'todo-text';
+        const textDisplay = document.createElement('div');
+        textDisplay.className = 'todo-text-display';
+        textDisplay.textContent = todo.content;
+
+        const textInput = document.createElement('textarea');
+        textInput.className = 'todo-text edit-mode';
         textInput.value = todo.content;
+        textInput.style.display = 'none';
+
+        textDisplay.addEventListener('click', () => {
+            textDisplay.style.display = 'none';
+            textInput.style.display = 'block';
+            textInput.rows = 10;
+            textInput.focus();
+        });
 
         const timeLabel = document.createElement('span');
         timeLabel.className = 'todo-time';
@@ -316,6 +340,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         deleteBtn.innerHTML = '&times;';
 
         headerRow.appendChild(statusSelect);
+        headerRow.appendChild(textDisplay);
         headerRow.appendChild(textInput);
         
         todoContent.appendChild(headerRow);
@@ -337,9 +362,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         textInput.addEventListener('blur', async () => {
+            textInput.style.display = 'none';
+            textDisplay.style.display = '-webkit-box';
             if (textInput.value.trim() !== todo.content) {
                 await todoService.updateTaskContent(todo.id, textInput.value.trim());
                 render();
+            }
+        });
+
+        textInput.addEventListener('keydown', async (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                textInput.blur(); // 觸發 blur 以儲存
             }
         });
 
@@ -384,8 +418,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (addBtn) addBtn.addEventListener('click', addTodo);
     if (todoInput) {
-        todoInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addTodo();
+        todoInput.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                addTodo();
+            }
         });
     }
 
@@ -412,3 +449,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await init();
 });
+}

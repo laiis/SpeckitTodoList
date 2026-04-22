@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { authService } from '../../server/services/authService';
 import db from '../../server/db/init';
 import bcrypt from 'bcryptjs';
@@ -7,6 +7,10 @@ import bcrypt from 'bcryptjs';
 // For simplicity, we'll assume authService uses the actual db/init but we could wrap it.
 
 describe('AuthService - Login', () => {
+  beforeAll(() => {
+    db.resetDB();
+  });
+
   beforeEach(() => {
     // Reset test data if needed
     db.prepare('DELETE FROM users WHERE username = ?').run('testuser');
