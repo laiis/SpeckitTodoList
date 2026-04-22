@@ -2,9 +2,13 @@ const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
+const logger = require('../utils/logger');
 
-const dbPath = path.resolve(__dirname, '../../todo.db');
+const dbPath = process.env.DB_PATH || path.resolve(__dirname, '../../todo.db');
 const db = new Database(dbPath);
+
+// 啟用外鍵約束 (SC-003)
+db.pragma('foreign_keys = ON');
 
 /**
  * 初始化資料庫 Schema
@@ -50,8 +54,11 @@ function initSchema() {
   const hasUserId = tableInfo.some(col => col.name === 'user_id');
   if (!hasUserId) {
     db.prepare("ALTER TABLE tasks ADD COLUMN user_id INTEGER REFERENCES users(id)").run();
-    console.log('Added user_id column to tasks table.');
+    logger.info('Added user_id column to tasks table.');
   }
+
+  // 建立索引以優化資料隔離查詢 (SC-001)
+  db.prepare(`CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id)`).run();
 }
 
 /**
@@ -75,17 +82,32 @@ function seedData() {
     const hash = bcrypt.hashSync('admin', salt);
     db.prepare('INSERT INTO users (username, password_hash, role_id) VALUES (?, ?, ?)')
       .run('admin', hash, 1);
-    console.log('Default admin account created (admin/admin).');
+    logger.info('Default admin account created (admin/admin).');
   }
+}
+
+/**
+ * 重設資料庫 (測試用)
+ */
+function resetDB() {
+  db.prepare('DROP TABLE IF EXISTS tasks').run();
+  db.prepare('DROP TABLE IF EXISTS users').run();
+  db.prepare('DROP TABLE IF EXISTS roles').run();
+  initSchema();
+  seedData();
 }
 
 try {
   initSchema();
   seedData();
-  console.log('Database initialized successfully.');
+  logger.info('Database initialized successfully.');
 } catch (err) {
-  console.error('Database initialization failed:', err);
+  logger.error('Database initialization failed: ' + err.message);
   process.exit(1);
-} finally {
-  db.close();
 }
+
+db.resetDB = resetDB;
+db.initSchema = initSchema;
+db.seedData = seedData;
+
+module.exports = db;

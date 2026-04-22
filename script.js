@@ -1,3 +1,5 @@
+import { authService } from './services/auth.js';
+
 // 提取核心邏輯以利測試
 // 憲法要求：封裝日誌記錄
 const Logger = {
@@ -14,126 +16,107 @@ class TodoService {
         DONE: 'done'
     };
 
-    static migrateLegacyData(data) {
-        let modified = false;
-        const migrated = data.map(todo => {
-            if (!todo.status) {
-                todo.status = todo.completed ? TodoService.Status.DONE : TodoService.Status.TODO;
-                modified = true;
-            }
-            if (!todo.createdAt) {
-                todo.createdAt = new Date().toISOString();
-                modified = true;
-            }
-            if (!todo.updatedAt) {
-                todo.updatedAt = todo.createdAt || new Date().toISOString();
-                modified = true;
-            }
-            return todo;
-        });
-        
-        return { migrated, modified };
-    }
-
     constructor() {
-        const rawTodos = JSON.parse(localStorage.getItem('todos')) || [];
-        const migrationResult = TodoService.migrateLegacyData(rawTodos);
-        this.todos = migrationResult.migrated;
-        if (migrationResult.modified) {
-            this.save();
-        }
-        Logger.info(`TodoService initialized with ${this.todos.length} items.`);
+        this.todos = [];
+        Logger.info(`TodoService initialized.`);
     }
 
-    save() {
-        localStorage.setItem('todos', JSON.stringify(this.todos));
-        Logger.info(`Saved ${this.todos.length} items to storage.`);
+    async loadTodos() {
+        try {
+            const response = await fetch('/api/tasks');
+            if (response.ok) {
+                this.todos = await response.json();
+                Logger.info(`Loaded ${this.todos.length} items from backend.`);
+            } else if (response.status === 401 || response.status === 403) {
+                window.location.href = 'pages/login.html';
+            }
+        } catch (error) {
+            Logger.error('Failed to load todos:', error);
+        }
+        return this.todos;
     }
 
     getTodos() {
         return this.todos;
     }
 
-    updateTaskStatus(id, newStatus) {
-        this.todos = this.todos.map(todo => {
-            if (todo.id === id) {
-                const isDone = newStatus === TodoService.Status.DONE;
-                const isTesting = newStatus === TodoService.Status.TESTING;
-                Logger.info(`Task ${id} status changing from ${todo.status} to ${newStatus}`);
-                return {
-                    ...todo,
-                    status: newStatus,
-                    completed: isDone,
-                    completedAt: isDone ? (todo.completedAt || new Date().toISOString()) : todo.completedAt,
-                    testedAt: isTesting ? (todo.testedAt || new Date().toISOString()) : todo.testedAt,
-                    updatedAt: new Date().toISOString()
-                };
+    async updateTaskStatus(id, newStatus) {
+        try {
+            const response = await fetch(`/api/tasks/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                this.todos = this.todos.map(t => t.id === id ? { ...t, ...updated } : t);
+                Logger.info(`Task ${id} status updated to ${newStatus}`);
             }
-            return todo;
-        });
-        this.save();
-        return this.todos;
-    }
-
-    updateTaskProperty(id, property, value) {
-        this.todos = this.todos.map(todo => {
-            if (todo.id === id) {
-                return { ...todo, [property]: value, updatedAt: new Date().toISOString() };
-            }
-            return todo;
-        });
-        this.save();
-        return this.todos;
-    }
-
-    createNewTodo(text, status = TodoService.Status.TODO, priority = 'medium') {
-        if (!text) return null;
-        const newTodo = {
-            id: Date.now(),
-            text: text,
-            completed: status === TodoService.Status.DONE,
-            status: status,
-            priority: priority,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            completedAt: status === TodoService.Status.DONE ? new Date().toISOString() : null
-        };
-        this.todos.push(newTodo);
-        this.save();
-        Logger.info(`Created new task in status ${status}: ${text}`);
-        return newTodo;
-    }
-
-    filterTodoList(currentFilter) {
-        Logger.info(`Filtering tasks for mode: ${currentFilter}`);
-        if (currentFilter === 'active') {
-            return this.todos.filter(t => t.status !== TodoService.Status.DONE);
-        } else if (currentFilter === 'completed') {
-            return this.todos.filter(t => t.status === TodoService.Status.DONE);
+        } catch (error) {
+            Logger.error('Failed to update task status:', error);
         }
         return this.todos;
+    }
+
+    async updateTaskContent(id, content) {
+        try {
+            const response = await fetch(`/api/tasks/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                this.todos = this.todos.map(t => t.id === id ? { ...t, ...updated } : t);
+                Logger.info(`Task ${id} content updated.`);
+            }
+        } catch (error) {
+            Logger.error('Failed to update task content:', error);
+        }
+        return this.todos;
+    }
+
+    async createNewTodo(text, status = TodoService.Status.TODO) {
+        if (!text) return null;
+        try {
+            const response = await fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: text, status })
+            });
+            if (response.ok) {
+                const newTask = await response.json();
+                this.todos.push(newTask);
+                Logger.info(`Created new task: ${text}`);
+                return newTask;
+            }
+        } catch (error) {
+            Logger.error('Failed to create task:', error);
+        }
+        return null;
     }
 
     getTasksByStatus(status) {
         return this.todos.filter(t => t.status === status);
     }
 
-    deleteTask(id) {
-        const taskToDelete = this.todos.find(t => t.id === id);
-        if (taskToDelete) {
-            Logger.info(`Deleting task ${id}: ${taskToDelete.text}`);
-            this.todos = this.todos.filter(t => t.id !== id);
-            this.save();
+    async deleteTask(id) {
+        try {
+            const response = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                this.todos = this.todos.filter(t => t.id !== id);
+                Logger.info(`Deleted task ${id}`);
+            }
+        } catch (error) {
+            Logger.error('Failed to delete task:', error);
         }
         return this.todos;
     }
 
-    clearCompleted() {
-        const completedCount = this.todos.filter(t => t.status === TodoService.Status.DONE).length;
-        if (completedCount > 0) {
-            Logger.info(`Clearing ${completedCount} completed tasks`);
-            this.todos = this.todos.filter(t => t.status !== TodoService.Status.DONE);
-            this.save();
+    async clearCompleted() {
+        const completedTasks = this.todos.filter(t => t.status === TodoService.Status.DONE);
+        for (const task of completedTasks) {
+            await this.deleteTask(task.id);
         }
         return this.todos;
     }
@@ -145,12 +128,7 @@ function formatDateTime(date) {
     return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
 }
 
-// 匯出功能供測試使用
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { TodoService, formatDateTime };
-}
-
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const todoService = new TodoService();
     let currentFilter = 'all';
     let activeTabStatus = sessionStorage.getItem('activeTabStatus') || TodoService.Status.TODO;
@@ -163,10 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentDateDisplay = document.getElementById('current-date');
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = themeToggle ? themeToggle.querySelector('.theme-icon') : null;
+    const userDisplay = document.getElementById('user-display');
+    const logoutBtn = document.getElementById('logout-btn');
     
     // Global inputs for top-level adding
     const todoInput = document.getElementById('todo-input');
-    const priorityInput = document.getElementById('priority-input');
     const addBtn = document.getElementById('add-btn');
 
     const columnDefinitions = [
@@ -177,12 +156,29 @@ document.addEventListener('DOMContentLoaded', () => {
         { status: TodoService.Status.DONE, label: '已完成' }
     ];
 
-    function init() {
+    async function init() {
+        // 身份驗證檢查
+        try {
+            const resp = await authService.getMe();
+            if (resp.ok) {
+                const user = await resp.json();
+                if (userDisplay) userDisplay.textContent = `你好, ${user.username} (${user.role})`;
+                if (logoutBtn) logoutBtn.style.display = 'block';
+            } else {
+                window.location.href = 'pages/login.html';
+                return;
+            }
+        } catch (e) {
+            window.location.href = 'pages/login.html';
+            return;
+        }
+
         if (currentDateDisplay) {
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             currentDateDisplay.textContent = new Date().toLocaleDateString('zh-TW', options);
         }
         initTheme();
+        await todoService.loadTodos();
         render();
     }
 
@@ -206,6 +202,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            await authService.logout();
+            window.location.href = 'pages/login.html';
+        });
+    }
+
     function render() {
         renderKanban();
         renderMobileTabs();
@@ -222,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
             kanbanContainer.appendChild(columnEl);
         });
 
-        // A1: Visual Focus Alignment
         if (currentFilter === 'active') {
             const todoColumn = kanbanContainer.querySelector(`.status-${TodoService.Status.TODO}`);
             if (todoColumn) {
@@ -262,11 +264,10 @@ document.addEventListener('DOMContentLoaded', () => {
             content.appendChild(createTaskElement(task));
         });
 
-        // Event: Quick Add
         const quickAddInput = column.querySelector('.quick-add-input');
-        quickAddInput.addEventListener('keypress', (e) => {
+        quickAddInput.addEventListener('keypress', async (e) => {
             if (e.key === 'Enter' && quickAddInput.value.trim()) {
-                todoService.createNewTodo(quickAddInput.value.trim(), colDef.status);
+                await todoService.createNewTodo(quickAddInput.value.trim(), colDef.status);
                 quickAddInput.value = '';
                 render();
             }
@@ -277,31 +278,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createTaskElement(todo) {
         const item = document.createElement('div');
-        item.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+        item.className = `todo-item ${todo.status === TodoService.Status.DONE ? 'completed' : ''}`;
         
-        let timeLabelText = `建立於: ${formatDateTime(todo.createdAt)}`;
-        if (todo.status === TodoService.Status.TESTING && todo.testedAt) {
-            timeLabelText = `測試於: ${formatDateTime(todo.testedAt)}`;
-        } else if (todo.completed && todo.completedAt) {
-            timeLabelText = `完成於: ${formatDateTime(todo.completedAt)}`;
-        }
+        let timeLabelText = `建立於: ${formatDateTime(todo.created_at)}`;
 
-        const priorityLabels = { low: '低', medium: '中', high: '高' };
-        
-        // Create components safely
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.checked = todo.completed;
+        checkbox.checked = todo.status === TodoService.Status.DONE;
 
         const todoContent = document.createElement('div');
         todoContent.className = 'todo-content';
 
         const headerRow = document.createElement('div');
         headerRow.className = 'todo-header-row';
-
-        const priorityBadge = document.createElement('span');
-        priorityBadge.className = `priority-badge priority-${todo.priority || 'medium'}`;
-        priorityBadge.textContent = priorityLabels[todo.priority || 'medium'];
 
         const statusSelect = document.createElement('select');
         statusSelect.className = 'status-select';
@@ -316,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const textInput = document.createElement('input');
         textInput.type = 'text';
         textInput.className = 'todo-text';
-        textInput.value = todo.text;
+        textInput.value = todo.content;
 
         const timeLabel = document.createElement('span');
         timeLabel.className = 'todo-time';
@@ -324,10 +313,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
-        deleteBtn.innerHTML = '&times;'; // Safe for static entities
+        deleteBtn.innerHTML = '&times;';
 
-        // Assembly
-        headerRow.appendChild(priorityBadge);
         headerRow.appendChild(statusSelect);
         headerRow.appendChild(textInput);
         
@@ -338,27 +325,26 @@ document.addEventListener('DOMContentLoaded', () => {
         item.appendChild(todoContent);
         item.appendChild(deleteBtn);
 
-        // Listeners
-        checkbox.addEventListener('change', () => {
+        checkbox.addEventListener('change', async () => {
             const newStatus = checkbox.checked ? TodoService.Status.DONE : TodoService.Status.TODO;
-            todoService.updateTaskStatus(todo.id, newStatus);
+            await todoService.updateTaskStatus(todo.id, newStatus);
             render();
         });
 
-        statusSelect.addEventListener('change', (e) => {
-            todoService.updateTaskStatus(todo.id, e.target.value);
+        statusSelect.addEventListener('change', async (e) => {
+            await todoService.updateTaskStatus(todo.id, e.target.value);
             render();
         });
 
-        textInput.addEventListener('blur', () => {
-            if (textInput.value.trim() !== todo.text) {
-                todoService.updateTaskProperty(todo.id, 'text', textInput.value.trim());
+        textInput.addEventListener('blur', async () => {
+            if (textInput.value.trim() !== todo.content) {
+                await todoService.updateTaskContent(todo.id, textInput.value.trim());
                 render();
             }
         });
 
-        deleteBtn.addEventListener('click', () => {
-            todoService.deleteTask(todo.id);
+        deleteBtn.addEventListener('click', async () => {
+            await todoService.deleteTask(todo.id);
             render();
         });
 
@@ -388,14 +374,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (itemsLeft) itemsLeft.textContent = `${activeCount} 個項目待辦`;
     }
 
-    // Top-level Adding
-    function addTodo() {
+    async function addTodo() {
         if (!todoInput) return;
         const text = todoInput.value.trim();
-        const priority = priorityInput ? priorityInput.value : 'medium';
-        todoService.createNewTodo(text, TodoService.Status.TODO, priority);
+        await todoService.createNewTodo(text, TodoService.Status.TODO);
         todoInput.value = '';
-        if (priorityInput) priorityInput.value = 'medium';
         render();
     }
 
@@ -411,7 +394,6 @@ document.addEventListener('DOMContentLoaded', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.getAttribute('data-filter');
-            // Reset active tab for mobile when changing filters (A6)
             const availableCols = getActiveColumns();
             if (!availableCols.find(c => c.status === activeTabStatus)) {
                 activeTabStatus = availableCols[0].status;
@@ -422,11 +404,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (clearCompletedBtn) {
-        clearCompletedBtn.addEventListener('click', () => {
-            todoService.clearCompleted();
+        clearCompletedBtn.addEventListener('click', async () => {
+            await todoService.clearCompleted();
             render();
         });
     }
 
-    init();
+    await init();
 });

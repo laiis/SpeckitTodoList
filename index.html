@@ -23,9 +23,13 @@
                 <h1>My Tasks</h1>
                 <p id="current-date"></p>
             </div>
-            <button id="theme-toggle" aria-label="Toggle Dark Mode">
-                <span class="theme-icon">🌙</span>
-            </button>
+            <div class="header-right" style="display: flex; align-items: center; gap: 10px;">
+                <span id="user-display" class="user-info"></span>
+                <button id="logout-btn" style="display: none; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; background: #ff4757; color: white;">登出</button>
+                <button id="theme-toggle" aria-label="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
         </header>
 
         <div class="input-section">
@@ -64,6 +68,6 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>

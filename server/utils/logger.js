@@ -1,24 +1,32 @@
-/**
- * Logger Utility Object
- * Compliant with project constitution: timestamped, categorized, no raw console.log
- */
+const path = require('path');
+const fs = require('fs');
+
+const logDir = path.resolve(__dirname, '../../logs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir);
+}
+
+const formatMessage = (level, message) => {
+  const timestamp = new Date().toISOString();
+  return `[${timestamp}] [${level.toUpperCase()}] ${message}`;
+};
+
 const logger = {
-  info: (category, message, data = '') => {
-    const timestamp = new Date().toISOString();
-    process.stdout.write(`[${timestamp}] [INFO] [${category}] ${message} ${data ? JSON.stringify(data) : ''}\n`);
+  info: (message) => {
+    const formatted = formatMessage('info', message);
+    fs.appendFileSync(path.join(logDir, 'app.log'), formatted + '\n');
   },
-  warn: (category, message, data = '') => {
-    const timestamp = new Date().toISOString();
-    process.stdout.write(`[${timestamp}] [WARN] [${category}] ${message} ${data ? JSON.stringify(data) : ''}\n`);
+  error: (message) => {
+    const formatted = formatMessage('error', message);
+    fs.appendFileSync(path.join(logDir, 'error.log'), formatted + '\n');
   },
-  error: (category, message, error = '') => {
-    const timestamp = new Date().toISOString();
-    const errorMessage = error instanceof Error ? error.stack : JSON.stringify(error);
-    process.stderr.write(`[${timestamp}] [ERROR] [${category}] ${message} ${errorMessage}\n`);
+  warn: (message) => {
+    const formatted = formatMessage('warn', message);
+    fs.appendFileSync(path.join(logDir, 'app.log'), formatted + '\n');
   },
-  security: (category, message, data = '') => {
-    const timestamp = new Date().toISOString();
-    process.stdout.write(`[${timestamp}] [SECURITY] [${category}] ${message} ${data ? JSON.stringify(data) : ''}\n`);
+  security: (message) => {
+    const formatted = formatMessage('security', message);
+    fs.appendFileSync(path.join(logDir, 'security.log'), formatted + '\n');
   }
 };
 

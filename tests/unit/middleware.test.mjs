@@ -1,15 +1,31 @@
-const { describe, it, expect, vi, beforeEach } = require('vitest');
-const authMiddleware = require('../../server/middleware/auth');
-const authorize = require('../../server/middleware/rbac');
-const { verifyToken } = require('../../server/services/tokenService');
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// Mock token service 與 logger
-vi.mock('../../server/services/tokenService');
-vi.mock('../../server/utils/logger', () => ({
+// 先進行 mock
+const mockLogger = {
   warn: vi.fn(),
   error: vi.fn(),
-  info: vi.fn()
+  info: vi.fn(),
+  security: vi.fn()
+};
+
+vi.mock('../../server/utils/logger', () => ({
+  default: mockLogger,
+  warn: mockLogger.warn,
+  error: mockLogger.error,
+  info: mockLogger.info,
+  security: mockLogger.security,
+  __esModule: true
 }));
+
+vi.mock('../../server/services/tokenService', () => ({
+  verifyToken: vi.fn(),
+  __esModule: true
+}));
+
+// 使用 dynamic import 或 require (如果是 CJS) 來載入測試目標
+import authMiddleware from '../../server/middleware/auth';
+import authorize from '../../server/middleware/rbac';
+import { verifyToken } from '../../server/services/tokenService';
 
 describe('Auth & RBAC Middleware Unit Tests', () => {
   let req, res, next;
@@ -28,7 +44,8 @@ describe('Auth & RBAC Middleware Unit Tests', () => {
     it('should pass if token is valid (from cookie)', () => {
       req.cookies.token = 'valid-token';
       const decodedUser = { id: 1, username: 'testuser', role: 'admin' };
-      verifyToken.mockReturnValue(decodedUser);
+      // 確保 mock 返回正確的值
+      vi.mocked(verifyToken).mockReturnValue(decodedUser);
 
       authMiddleware(req, res, next);
 
@@ -47,7 +64,7 @@ describe('Auth & RBAC Middleware Unit Tests', () => {
 
     it('should fail if token is invalid or expired', () => {
       req.headers.authorization = 'Bearer invalid-token';
-      verifyToken.mockImplementation(() => { throw new Error('Invalid token'); });
+      vi.mocked(verifyToken).mockImplementation(() => { throw new Error('Invalid token'); });
 
       authMiddleware(req, res, next);
 

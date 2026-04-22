@@ -22,7 +22,8 @@
 ---
 
 ## POST /api/auth/login
-使用者登入並取得 JWT。支援 5 次嘗試鎖定。
+使用者登入。支援 5 次嘗試鎖定。
+成功後將 JWT 寫入 Secure HttpOnly Cookie。
 
 ### Request Body
 ```json
@@ -33,9 +34,12 @@
 ```
 
 ### Success Response (200 OK)
+**Headers**:
+`Set-Cookie: token=<jwt>; HttpOnly; Secure; SameSite=Strict; Max-Age=86400`
+
+**Body**:
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": 5,
     "username": "example_user",
@@ -51,10 +55,7 @@
 ---
 
 ## GET /api/auth/me
-取得當前登入使用者的資訊。
-
-### Headers
-`Authorization: Bearer <token>`
+取得當前登入使用者的資訊。依賴於 Cookie 中的 JWT。
 
 ### Success Response (200 OK)
 ```json
@@ -75,18 +76,17 @@
 ### Success Response (200 OK)
 ```json
 [
-  { "id": 1, "username": "admin", "role": "admin" },
-  { "id": 5, "username": "user1", "role": "viewer" }
+  { "id": 1, "username": "admin", "role": "admin", "is_locked": false },
+  { "id": 5, "username": "user1", "role": "viewer", "is_locked": true }
 ]
 ```
 
-### POST /api/admin/reset-password
+### POST /api/admin/users/:id/password-reset
 管理員手動重設使用者密碼。
 
 ### Request Body
 ```json
 {
-  "userId": 5,
   "newPassword": "new_secure_password"
 }
 ```
@@ -107,4 +107,23 @@
 ### Success Response (200 OK)
 ```json
 { "message": "User role updated successfully" }
+```
+
+### POST /api/admin/users/:id/unlock
+管理員手動解鎖帳號。
+
+### Success Response (200 OK)
+```json
+{ "message": "User unlocked successfully" }
+```
+
+### GET /api/admin/logs
+獲取系統安全日誌。
+
+### Success Response (200 OK)
+```json
+[
+  { "timestamp": "2026-04-21T10:00:00Z", "type": "security", "message": "Login failed for user: admin" },
+  { "timestamp": "2026-04-21T10:05:00Z", "type": "security", "message": "User locked: admin" }
+]
 ```

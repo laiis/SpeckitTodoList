@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理員儀表板 - SpeckitTodoList</title>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .admin-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .log-entry {
+            font-family: monospace;
+            font-size: 0.9em;
+            padding: 5px 0;
+            border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+        }
+        .level-security { color: #ff4757; font-weight: bold; }
+        .level-info { color: #2ed573; }
+        .level-error { color: #ff6b81; }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: white;
+        }
+        .badge-admin { background: #5352ed; }
+        .badge-editor { background: #2ed573; }
+        .badge-viewer { background: #747d8c; }
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 0.8em;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        .btn-unlock { background: #ffa502; color: white; }
+        .btn-reset { background: #5352ed; color: white; }
+    </style>
+</head>
+<body class="admin-page">
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="admin-container">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1>管理員儀表板</h1>
+            <a href="../index.html" class="glass" style="padding: 10px 20px; text-decoration: none; color: inherit; border-radius: 8px;">返回首頁</a>
+        </header>
+
+        <div class="section glass">
+            <h2>使用者管理</h2>
+            <table id="users-table">
+                <thead>
+                    <tr>
+                        <th>使用者名稱</th>
+                        <th>角色</th>
+                        <th>狀態</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="users-list">
+                    <!-- 使用者資料將在此插入 -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section glass">
+            <h2>系統安全日誌</h2>
+            <div id="logs-container" style="max-height: 400px; overflow-y: auto;">
+                <!-- 日誌將在此插入 -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { authService } from '../services/auth.js';
+
+        async function checkAdmin() {
+            try {
+                const resp = await authService.getMe();
+                if (!resp.ok) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const user = await resp.json();
+                if (user.role !== 'admin') {
+                    alert('權限不足，將返回首頁');
+                    window.location.href = '../index.html';
+                }
+            } catch (e) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function loadUsers() {
+            const resp = await fetch('/api/admin/users');
+            if (resp.ok) {
+                const users = await resp.json();
+                const list = document.getElementById('users-list');
+                list.innerHTML = users.map(user => `
+                    <tr>
+                        <td>${user.username}</td>
+                        <td><span class="badge badge-${user.role}">${user.role}</span></td>
+                        <td>${user.locked_until ? `<span style="color:red">鎖定中 (至 ${new Date(user.locked_until).toLocaleString()})</span>` : '正常'}</td>
+                        <td>
+                            ${user.locked_until ? `<button class="btn-sm btn-unlock" onclick="unlockUser(${user.id})">手動解鎖</button>` : ''}
+                            <button class="btn-sm btn-reset" onclick="resetPassword(${user.id}, '${user.username}')">重設密碼</button>
+                            <select onchange="updateRole(${user.id}, this.value)">
+                                <option value="1" ${user.role_id === 1 ? 'selected' : ''}>Admin</option>
+                                <option value="2" ${user.role_id === 2 ? 'selected' : ''}>Editor</option>
+                                <option value="3" ${user.role_id === 3 ? 'selected' : ''}>Viewer</option>
+                            </select>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        async function loadLogs() {
+            const resp = await fetch('/api/admin/logs');
+            if (resp.ok) {
+                const logs = await resp.json();
+                const container = document.getElementById('logs-container');
+                container.innerHTML = logs.map(log => `
+                    <div class="log-entry">
+                        <span style="color: #747d8c">[${log.timestamp || ''}]</span>
+                        <span class="level-${log.level ? log.level.toLowerCase() : 'info'}">[${log.level || 'INFO'}]</span>
+                        ${log.message}
+                    </div>
+                `).join('');
+            }
+        }
+
+        window.unlockUser = async (id) => {
+            if (confirm('確定要解鎖此使用者嗎？')) {
+                const resp = await fetch(`/api/admin/users/${id}/unlock`, { method: 'POST' });
+                if (resp.ok) {
+                    alert('已解鎖');
+                    loadUsers();
+                }
+            }
+        };
+
+        window.resetPassword = async (id, username) => {
+            const newPassword = prompt(`請輸入 ${username} 的新密碼:`);
+            if (newPassword) {
+                const resp = await fetch(`/api/admin/users/${id}/password-reset`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newPassword })
+                });
+                if (resp.ok) alert('密碼已重設');
+            }
+        };
+
+        window.updateRole = async (id, roleId) => {
+            const resp = await fetch(`/api/admin/users/${id}/role`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ roleId: parseInt(roleId) })
+            });
+            if (resp.ok) {
+                alert('角色已更新');
+                loadUsers();
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAdmin();
+            loadUsers();
+            loadLogs();
+            // 每 30 秒自動重新整理日誌
+            setInterval(loadLogs, 30000);
+        });
+    </script>
+</body>
+</html>

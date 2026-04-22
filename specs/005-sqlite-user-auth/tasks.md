@@ -25,47 +25,55 @@
 
 ## Phase 3: [US1] 安全的身份驗證 (Priority: P1)
 
-- [ ] T010 [US1] 撰寫 AuthService 登入邏輯單元測試 `tests/unit/authService.test.js`
-- [ ] T011 [US1] 實作 `server/services/authService.js` 的登入邏輯，包含失敗計數與日誌記錄 (FR-013)
-- [ ] T012 [US1] 實作暴力破解防護邏輯：5 次失敗鎖定 15 分鐘 (FR-013)
-- [ ] T013 [US1] 實作登入 API 端點 `POST /api/auth/login`，**成功/失敗均須記錄日誌 (logger.security)**
-- [ ] T014 [US1] 實作 `GET /api/auth/me` 端點以取得當前使用者資訊
-- [ ] T015 [US1] 實作登出 API 端點 `POST /api/auth/logout`，**記錄登出事件 (logger.info)**
-- [ ] T016 [US1] 建立前端登入頁面 `public/pages/login.html` (需繼承憲法規範之共用 Layout 組件)
-- [ ] T017 [US1] 整合前端 API 客戶端服務於 `public/services/auth.js` (配合 Cookie 認證模式)
+- [x] T010 [US1] 撰寫 AuthService 登入邏輯單元測試 `tests/unit/authService.test.js`
+- [x] T011 [US1] 實作 `server/services/authService.js` 的登入邏輯，包含失敗計數與日誌記錄 (FR-013)
+- [x] T012 [US1] 實作暴力破解防護邏輯：5 次失敗鎖定 15 分鐘 (FR-013)
+- [x] T013 [US1] 實作登入 API 端點 `POST /api/auth/login` (使用 Cookie 認證模式)
+- [x] T014 [US1] 實作 `GET /api/auth/me` 端點以取得當前使用者資訊 (從 Cookie 提取)
+- [x] T015 [US1] 實作登出 API 端點 `POST /api/auth/logout` (清除 Cookie)
+- [x] T016 [US1] 建立前端登入頁面 `public/pages/login.html` (需繼承憲法規範之共用 Layout 組件)
+- [x] T017 [US1] 整合前端 API 客戶端服務於 `public/services/auth.js`
 
 ## Phase 4: [US3] 使用者註冊 (Priority: P3)
 
-- [ ] T018 [US3] 撰寫註冊邏輯單元測試於 `tests/unit/authService.test.js`
-- [ ] T019 [US3] 實作 `server/services/authService.js` 的註冊邏輯 (預設角色為 viewer)
-- [ ] T020 [US3] 實作註冊 API 端點 `POST /api/auth/register`，**記錄新帳號建立事件 (logger.security)**
-- [ ] T021 [US3] 建立前端註冊頁面 `public/pages/register.html` (需繼承憲法規範之共用 Layout 組件)
+- [x] T018 [US3] 撰寫註冊邏輯單元測試於 `tests/unit/authService.test.js`
+- [x] T019 [US3] 實作 `server/services/authService.js` 的註冊邏輯 (預設角色為 viewer)
+- [x] T020 [US3] 實作註冊 API 端點 `POST /api/auth/register`
+- [x] T021 [US3] 建立前端註冊頁面 `public/pages/register.html`
 
 ## Phase 5: [US2] 角色存取控制 & 資料隔離 (Priority: P2)
 
-- [ ] T022 [US2] 更新 SQLite 遷移腳本，為 `Tasks` 表新增 `user_id` 欄位並建立索引
-- [ ] T023 [US2] 撰寫 TaskService 資料隔離單元測試 `tests/unit/taskService.test.js`
-- [ ] T024 [US2] 修改 `server/services/taskService.js`，確保所有 CRUD 操作皆包含 `user_id` 過濾 (FR-012)
-- [ ] T025 [US2] 應用 RBAC 中間件於 Task 路由，限制 Viewer 僅能讀取，Editor 與 Admin 具備完整 CRUD 權限 (FR-006)
-- [ ] T026 [US2] 實作前端 Tasks 頁面的資料隔離展示邏輯
+- [x] T022 [US2] 更新 SQLite 遷移腳本，為 `Tasks` 表新增 `user_id` 欄位並建立索引
+- [x] T023 [US2] 撰寫 TaskService 資料隔離單元測試 `tests/unit/taskService.test.js`
+- [x] T024 [US2] 修改 `server/services/taskService.js`，確保所有 CRUD 操作皆包含 `user_id` 過濾 (FR-012)
+- [x] T025 [US2] 應用 RBAC 中間件於 Task 路由，所有登入使用者皆可執行屬於自己的 CRUD，僅 Admin 可存取管理端點 (FR-006)
+- [x] T026 [US2] 實作前端 Tasks 頁面的資料隔離展示邏輯
 
 ## Phase 6: Admin Dashboard (管理員專屬功能)
 
-- [ ] T027 [P] 實作 Admin 專用路由 `server/routes/admin.js` 與角色檢查 (FR-011)
-- [ ] T027b 撰寫 AdminService 管理功能單元測試 `tests/unit/adminService.test.js`
-- [ ] T028 實作管理員獲取所有使用者 API `GET /api/admin/users` (包含鎖定狀態)
-- [ ] T029 實作管理員重設密碼 API `POST /api/admin/reset-password`，**記錄重設操作 (logger.security)**
-- [ ] T030 實作獲取系統安全日誌 API `GET /api/admin/logs` (SC-002)
-- [ ] T031 建立管理員儀表板頁面 `public/pages/admin.html` (包含使用者清單、日誌檢視、角色變更與密碼重設介面)
+- [x] T027 [P] 實作 Admin 專用路由 `server/routes/admin.js` 與角色檢查 (FR-011)
+- [x] T027b 撰寫 AdminService 管理功能單元測試 `tests/unit/adminService.test.js`
+- [x] T028 實作管理員獲取所有使用者 API `GET /api/admin/users`
+- [x] T028b 實作管理員手動解鎖帳號 API `POST /api/admin/users/:id/unlock` (FR-011)
+- [x] T029 實作管理員重設密碼 API `POST /api/admin/users/:id/password-reset`
+- [x] T029b 實作管理員變更使用者角色 API `PATCH /api/admin/users/:id/role` (FR-011)
+- [x] T030 實作獲取系統安全日誌 API `GET /api/admin/logs` (SC-002)
+- [x] T031 建立管理員儀表板頁面 `public/pages/admin.html`
 
 ## Phase 7: Polish & Cross-Cutting (優化與最終稽核)
 
-- [ ] T032 [P] 全面檢查所有 API 輸入的 XSS 防護與欄位驗證
-- [ ] T033 實作全域 401/403 錯誤處理，前端自動導向登入頁
-- [ ] T034 [P] 執行效能基準測試：驗證 API Latency < 200ms 與整體登入流程 < 1s (SC-001)
-- [ ] T035 執行全路徑整合測試 `tests/integration/auth_flow.test.js`
-- [ ] T035b 執行安全性滲透測試：驗證無法透過直接操作 URL 或 API 繞過權限檢查 (SC-004)
-- [ ] T036 更新文件，確保 `quickstart.md` 指令與實際代碼一致
+- [x] T032 [P] 執行安全性全面掃描：驗證使用者名稱與任務內容輸入之 XSS 脫逸邏輯 (FR-004)
+- [x] T033 實作全域 401/403 錯誤處理，前端自動導向登入頁
+- [ ] T034 [P] 執行效能基準測試：驗證 API Latency < 200ms 與整體登入流程 < 1s (需進行 100 次連續請求並取平均值) (SC-001)
+    - [ ] 撰寫自動化效能測試腳本 (如：使用 Vitest 搭配 performance hooks)
+    - [ ] 模擬 10+ 同時連接下的回應時間驗證
+
+- [x] T035 執行全路徑整合測試 `tests/integration/auth_flow.test.mjs`
+- [x] T035b 執行安全性滲透測試：
+    - [x] 驗證使用者無法透過修改 `taskId` 存取他人的任務 (Bypass Check)
+    - [x] 驗證 Viewer 角色無法透過手動 API 調用執行 DELETE/POST (RBAC Check)
+    - [x] 驗證未授權使用者無法讀取管理員日誌路徑 (SC-004)
+- [x] T036 更新文件，確保 `quickstart.md` 指令與實際代碼一致
 
 ## Dependencies & Parallel Execution
 

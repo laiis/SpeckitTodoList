@@ -13,7 +13,7 @@ const authorize = (roles = []) => {
   return (req, res, next) => {
     // 此中間件應接在 authMiddleware 之後
     if (!req.user || !req.user.role) {
-      logger.error('Authorization failed: No user context found');
+      logger.error('Authorization failed: No user context found. req.user: ' + JSON.stringify(req.user));
       return res.status(500).json({ error: '內部錯誤：未正確執行身份驗證中間件' });
     }
 

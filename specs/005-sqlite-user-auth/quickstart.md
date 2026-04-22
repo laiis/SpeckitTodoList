@@ -17,23 +17,38 @@ npm install express better-sqlite3 bcryptjs jsonwebtoken
 
 ### 啟動伺服器
 ```bash
-node server/index.js
+npm start
+# 或者直接執行: node server/app.js
 ```
 
 ### 登入並取得 Token
-使用 Postman 或 curl 呼叫 `POST /api/auth/login`。
+使用 Postman 或 curl 呼叫 `POST /api/auth/login`。Token 會自動儲存於 HttpOnly Cookie 中。
 
 ## 3. 測試指南
 
-### 單元測試 (Service 層)
+### 執行所有測試
 ```bash
-npm test tests/unit/authService.test.js
+npm test
 ```
 
-### 安全性測試範例
-1. **暴力破解測試**：連續輸入 5 次錯誤密碼，確認第 6 次回傳 403 且記錄鎖定時間。
-2. **資料隔離測試**：使用 User A 建立任務，確認 User B 登入後無法看到該任務。
-3. **權限測試**：使用 Viewer 角色登入，嘗試呼叫 `POST /api/tasks` 應回傳 403。
+### 整合與安全性測試 (Vitest)
+```bash
+# 執行身份驗證完整流程測試
+npx vitest run tests/integration/auth_flow.test.mjs
+
+# 執行安全性與滲透測試
+npx vitest run tests/integration/security.test.mjs
+
+# 執行效能基準測試
+npx vitest run tests/integration/performance.test.mjs
+```
+
+### 測試環境隔離
+開發測試時，可透過 `DB_PATH` 環境變數指定獨立的資料庫檔案或使用記憶體資料庫：
+```bash
+# 使用記憶體資料庫執行測試 (不影響本地 todo.db)
+DB_PATH=:memory: npx vitest run
+```
 
 ## 4. 常見問題
 - **如何重設 Admin 密碼？**：需直接透過 SQLite 終端操作資料庫，或刪除資料庫檔案重新初始化。

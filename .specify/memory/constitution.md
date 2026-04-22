@@ -18,7 +18,7 @@
 文件始終保持正體中文撰寫。技術名詞以台灣常用詞為主。
 
 ### I. 技術標準 (Technical Standards)
-本專案採用 javascript / html / css 作為核心框架。資料存取應優先封裝於 Service 層並使用 localStorage。 Rationale: 確保技術組合的一致性，並透過封裝降低呈現層與資料層的耦合。
+本專案採用 javascript / html / css 作為核心框架。資料存取應優先封裝於 Service 層。對於單機簡單應用，優先使用 localStorage；對於多使用者、具備安全隔離需求或複雜資料關係之功能，應採用伺服器端資料庫（如 SQLite）進行持久化儲存。 Rationale: 確保技術組合的一致性，並根據應用場景提供合適的安全性與資料完整性保障。
 
 ### II. 安全規範 (Security & Authentication)
 安全性是系統的基石。所有使用者輸入必須進行適當的脫逸處理以防範 XSS 攻擊。資料儲存應確保結構完整性。 Rationale: 保護使用者資料安全，並符合瀏覽器端的安全標準。

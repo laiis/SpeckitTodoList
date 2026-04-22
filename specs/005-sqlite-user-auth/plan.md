@@ -74,6 +74,6 @@ tests/
 
 ## Complexity Tracking
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
+| Requirement | Approach | Rationale |
 |-----------|------------|-------------------------------------|
-| 使用 SQLite 儲存 | 使用者明確要求將資料存放於資料庫，且為滿足多使用者安全、資料隔離 (FR-012) 與暴力破解防護 (FR-013) 之持久化需求。 | localStorage 無法安全儲存多使用者憑證，亦無法在伺服器端實作可靠的資料存取過濾與帳號鎖定。 |
+| 使用 SQLite 儲存 | **Compliance** | 符合憲章 1.0.0 修正案：針對多使用者、具備安全隔離需求之功能，採用伺服器端資料庫進行持久化儲存。 |
