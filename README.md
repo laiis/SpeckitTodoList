@@ -20,6 +20,15 @@ npm run dev
 ```
 存取路徑：`http://localhost:5173`
 
+## 🌐 環境配置
+
+系統支援透過環境變數進行客製化配置：
+
+- `PORT`: 伺服器執行的連接埠 (預設: `3000`)
+- `JWT_SECRET`: JWT 簽章用的密鑰 (生產環境務必修改)
+- `DB_PATH`: SQLite 資料庫檔案路徑 (預設: `./todo.db`)
+- `NODE_ENV`: 執行環境模式 (`development` 或 `production`)
+
 ---
 
 ## 🔑 使用者指南
@@ -47,13 +56,22 @@ npm run dev
 
 ### 主要功能 (FR-011)
 - **使用者清單**：即時查看所有已註冊使用者的帳號、角色、建立時間及鎖定狀態。
-- **權限變更 (RBAC)**：支援將使用者角色調整為 `Admin` (管理員)、`Editor` (編輯者) 或 `Viewer` (檢視者)。
+- **權限變更 (RBAC)**：支援將使用者角色調整為 `Admin`、`Editor` 或 `Viewer`。
 - **手動解鎖**：若使用者因多次嘗試失敗而被鎖定，管理員可手動解除鎖定。
 - **密碼重設**：管理員可協助使用者重設登入密碼。
 - **安全日誌 (Audit Logs)**：查看系統安全相關事件 (如登入失敗、註冊、鎖定等)。
-  - *註：日誌採自動清理政策，僅保留最近 30 天或 10,000 筆紀錄。*
+  - *註：日誌採自動清理政策，僅保留最近 10,000 筆紀錄。*
 
 ---
+
+## 📂 目錄結構
+
+- `server/`: 後端核心代碼 (Routes, Services, Middleware, DB)
+- `services/`: 前端 API 封裝服務
+- `public/`: 靜態資源 (HTML, CSS)
+- `specs/`: 功能規格書、開發計畫與任務清單 (SDD 流程文件)
+- `tests/`: 測試案例 (Unit, Integration)
+- `logs/`: 系統執行與安全日誌
 
 ## 🛡️ 技術規範 (Constitution Highlights)
 - **效能**：所有 API 平均回應延遲必須小於 200ms。
@@ -63,5 +81,9 @@ npm run dev
 ## 🧪 測試
 執行整合、安全性與效能測試：
 ```bash
-npx vitest
+# 執行所有測試
+npm test
+
+# 執行並查看覆蓋率 (憲法要求需 > 80%)
+npm run test:coverage
 ```
