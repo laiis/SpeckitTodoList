@@ -7,7 +7,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "cross-env NODE_ENV=test vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "scan-secrets": "grep -rE 'JWT_SECRET\\s*=\\s*\"[^\"]+\"|ADMIN_PASSWORD\\s*=\\s*\"[^\"]+\"' server/"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.0.0",

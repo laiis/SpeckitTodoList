@@ -68,6 +68,13 @@
 - **變數缺失**: 當 `NODE_ENV` 非 `production` 但變數缺失時，系統應提供足夠清晰的警告與安全的預設值。
 - **類型不符**: 當環境變數的值不符合預期類型（例如：應為數字卻給字串）時，系統應能處理或提供錯誤提示。
 
+### 關鍵設定定義 (Critical Settings Definitions)
+
+以下變數被視為「關鍵設定」，在生產模式下必須進行強制驗證：
+- **JWT_SECRET**: 用於簽署與驗證 JSON Web Token 的機敏金鑰。
+- **ADMIN_PASSWORD**: 系統管理員的初始登入密碼。
+- **DATABASE_PATH**: SQLite 資料庫檔案的存放路徑。
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements

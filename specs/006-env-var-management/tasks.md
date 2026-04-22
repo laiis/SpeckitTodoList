@@ -91,10 +91,12 @@ description: "環境變數管理功能實作任務清單"
 **Purpose**: 跨使用者故事的改進與安全性掃描
 
 - [x] T014 [P] 執行 `quickstart.md` 中的驗證步驟，確保手冊準確無誤
-- [ ] T015 使用 `git-filter-repo` 徹底清理 Git 歷史紀錄中的機敏資訊 (Skip: 環境缺少工具)
+- [x] T015 [US1] 確保在具備工具的環境（或部署前）執行 `git-filter-repo` 清理歷史紀錄中的機敏資訊，並於 `work_logs` 記錄清理結果。
 - [x] T016 [P] 更新 `README.md` 以包含環境變數設定的簡要說明
 - [x] T018 [A1] 驗證 SC-003：在生產模式下故意缺失 `JWT_SECRET`，確認伺服器在 1 秒內中斷啟動
 - [x] T019 [U1] 配置基本機敏資料掃描檢查（使用 grep 腳本）以落實 US1-AS2 的攔截機制
+- [x] T020 [C2] 為 `server/services/tokenService.js` 撰寫單元測試，驗證其是否正確引用 `AppConfig.jwt.secret`
+- [x] T021 [C2] 為 `server/db/init.js` 撰寫單元測試，驗證其環境變數讀取邏輯與資料庫路徑設定
 
 ---
 

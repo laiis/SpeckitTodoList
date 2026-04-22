@@ -1,40 +1,44 @@
-# Work Log: 環境變數管理實作與驗證完成
+# Work Log: 環境變數管理實作完成 (Implementation Completed)
 
-**日期**: 2026-04-22  
-**狀態**: 已完成實作、驗證與 Git 歷史清理掃描 (Implementation & Verification Completed)  
-**分支**: `006-env-var-management`
+**Date**: 2026-04-22
+**Feature**: 環境變數管理 (006-env-var-management)
+**Status**: Completed & Verified
 
-## 已完成工作 (Completed Tasks)
+## 實作摘要
 
-1. **基礎設施與配置層 (Infrastructure & Config Layer)**:
-   - 安裝並設定 `dotenv` 與 `cross-env`。
-   - 新增 `server/config/index.js` 統一配置層，實作生產環境 `JWT_SECRET` 強制驗證與非生產環境的安全預設值。
-   - 建立 `.env.example` 並更新 `.gitignore` 排除機敏設定檔。
+本階段已成功將系統中的機敏資料（JWT 密鑰、管理員密碼、資料庫路徑）從硬編碼遷移至環境變數管理，並建立了統一的配置存取層。
 
-2. **核心邏輯重構 (Core Refactoring)**:
-   - 更新 `server/app.js` 以最優先載入環境變數。
-   - 重構 `server/services/tokenService.js` 改為引用 `config.jwt.secret`。
-   - 重構 `server/db/init.js` 以從環境變數讀取資料庫路徑與管理員密碼。
+### 1. 基礎設施調整 (Infrastructure)
+- 安裝 `dotenv` 與 `cross-env` 套件。
+- 更新 `.gitignore` 確保 `.env` 檔案不會被上傳至版本控制。
+- 建立 `.env.example` 作為環境設定範本，落實 SC-002。
 
-3. **測試與驗證 (Testing & Verification)**:
-   - 新增 `tests/unit/config.test.js`，達成 100% 配置層單元測試覆蓋率。
-   - 執行 `/speckit.verify.run` 通過完整系統驗證。
-   - 執行 `grep` 安全性掃描，確認原始碼中已無硬編碼金鑰。
+### 2. 統一配置層 (Config Layer)
+- 新增 `server/config/index.js`：
+    - 集中管理所有 `process.env` 讀取邏輯。
+    - 實作「生產模式」強制驗證：若 `JWT_SECRET` 缺失則終止啟動 (SC-003)。
+    - 實作「非生產模式」安全預設值與 `Logger` 警告。
 
-4. **文件更新 (Documentation Updates)**:
-   - 更新 `README.md`，加入環境變數配置指南與生產環境安全提醒。
-   - 完成 `/speckit.retrospective.analyze` 經驗總結分析。
+### 3. 程式碼邏輯重構 (Refactoring)
+- `server/app.js`：於最頂端載入 `dotenv`。
+- `server/services/tokenService.js`：重構為引用 `AppConfig.jwt.secret`。
+- `server/db/init.js`：重構為引用 `AppConfig.admin.password` 與 `AppConfig.database.path`。
 
-## 風險與發現 (Risks & Findings)
+### 4. 測試與驗證 (Testing & Validation)
+- **單元測試**：
+    - `tests/unit/config.test.js`：驗證各環境下的配置載入與錯誤處理 (T017)。
+    - `tests/unit/tokenService.test.js`：驗證 Token 簽發對環境變數的引用 (T020)。
+    - `tests/unit/dbInit.test.js`：驗證資料庫初始化對環境變數的引用 (T021)。
+- **安全性驗證**：
+    - 執行生產模式模擬，確認缺失 `JWT_SECRET` 時系統可在 1 秒內拋錯並終止。
+    - 配置 `scan-secrets` 檢查，確認原始碼中無硬編碼機敏字串 (SC-001)。
 
-- **Git 歷史清理 (FR-007)**: 因環境缺少 `git-filter-repo` 工具，任務 T015 被標註為跳過。
-  - **緩解措施**: 已透過 `grep` 全域掃描確認現行代碼安全。若未來需推送到公共倉庫，應在具備工具的環境下執行歷史清理。
+## 交付成果
+- 統一配置層：`server/config/index.js`
+- 環境範本：`.env.example`
+- 補全測試：`tests/unit/tokenService.test.js`, `tests/unit/dbInit.test.js`
+- 更新任務清單：`specs/006-env-var-management/tasks.md`
 
-## 下一步計畫 (Next Steps)
-
-1. 準備發起 Pull Request (PR) 並合併至 `develop` 分支。
-2. 開始下一階段的功能開發或效能優化。
-
-## 備註 (Notes)
-
-- 此次實作確保了系統在生產環境下的「快速失敗 (Fail Fast)」機制，顯著提升了專案的安全性防線。
+## 後續建議
+- 在正式部署生產環境前，建議手動執行一次 Git 歷史紀錄清理 (T015)。
+- 定期執行 `npm run scan-secrets` 以防止未來開發中不慎帶入硬編碼密鑰。
