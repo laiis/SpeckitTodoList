@@ -1,10 +1,16 @@
+// Load environment variables if this script is run directly
+const path = require('path');
+if (require.main === module) {
+  require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+}
+
 const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
-const path = require('path');
 const fs = require('fs');
 const logger = require('../utils/logger');
+const config = require('../config');
 
-const dbPath = process.env.DB_PATH || path.resolve(__dirname, '../../todo.db');
+const dbPath = config.database.path;
 const db = new Database(dbPath);
 
 // 啟用外鍵約束 (SC-003)
@@ -37,7 +43,6 @@ function initSchema() {
   `).run();
 
   // 更新 Tasks 表 (新增 user_id)
-  // 注意：這裡假設 tasks 表已存在，若不存在則建立基礎結構
   db.prepare(`
     CREATE TABLE IF NOT EXISTS tasks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,7 +84,7 @@ function seedData() {
   const adminUser = db.prepare('SELECT * FROM users WHERE username = ?').get('admin');
   if (!adminUser) {
     const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync('admin', salt);
+    const hash = bcrypt.hashSync(config.admin.password, salt);
     db.prepare('INSERT INTO users (username, password_hash, role_id) VALUES (?, ?, ?)')
       .run('admin', hash, 1);
     logger.info('Default admin account created (admin/admin).');

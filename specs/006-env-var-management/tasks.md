@@ -21,9 +21,9 @@ description: "環境變數管理功能實作任務清單"
 
 **Purpose**: 專案初始化與基礎結構設定
 
-- [ ] T001 安裝必要套件 `dotenv` 與 `cross-env` 於 `package.json`
-- [ ] T002 更新 `.gitignore` 以排除 `.env` 檔案
-- [ ] T003 [P] 建立環境變數範例檔 `.env.example` 於專案根目錄
+- [x] T001 安裝必要套件 `dotenv` 與 `cross-env` 於 `package.json`
+- [x] T002 更新 `.gitignore` 以排除 `.env` 檔案
+- [x] T003 [P] 建立環境變數範例檔 `.env.example` 於專案根目錄
 
 ---
 
@@ -31,7 +31,7 @@ description: "環境變數管理功能實作任務清單"
 
 **Purpose**: 核心基礎設施，必須在所有使用者故事開始前完成
 
-- [ ] T004 建立統一配置層 `server/config/index.js`，實作 `AppConfig` 骨架與基礎載入邏輯
+- [x] T004 建立統一配置層 `server/config/index.js`，實作 `AppConfig` 骨架與基礎載入邏輯
 
 **Checkpoint**: 基礎建設已就緒 - 使用者故事實作可開始
 
@@ -45,10 +45,10 @@ description: "環境變數管理功能實作任務清單"
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] 在 `server/app.js` 最頂端加入 `require('dotenv').config()` 以載入變數
-- [ ] T006 [US1] 重構 `server/services/tokenService.js` 改為引用 `AppConfig.jwt.secret`
-- [ ] T007 [US1] 重構 `server/db/init.js` 以使用 `AppConfig.admin.password` 與 `AppConfig.database.path`
-- [ ] T008 [US1] 更新 `server/db/init.js` 確保作為獨立腳本執行時也能呼叫 `dotenv.config()` 正確載入環境變數
+- [x] T005 [US1] 在 `server/app.js` 最頂端加入 `require('dotenv').config()` 以載入變數
+- [x] T006 [US1] 重構 `server/services/tokenService.js` 改為引用 `AppConfig.jwt.secret`
+- [x] T007 [US1] 重構 `server/db/init.js` 以使用 `AppConfig.admin.password` 與 `AppConfig.database.path`
+- [x] T008 [US1] 更新 `server/db/init.js` 確保作為獨立腳本執行時也能呼叫 `dotenv.config()` 正確載入環境變數
 
 **Checkpoint**: 使用者故事 1 應能獨立運作，所有硬編碼機敏資料已移除
 
@@ -62,9 +62,9 @@ description: "環境變數管理功能實作任務清單"
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] 在 `server/config/index.js` 實作驗證邏輯（生產模式缺失 `JWT_SECRET` 則拋錯）
-- [ ] T010 [US2] 在 `server/config/index.js` 實作非生產環境的安全預設值，並使用 `Logger` 記錄
-- [ ] T011 [US2] 在 `server/config/index.js` 實作安全性警告（若生產模式下 `ADMIN_PASSWORD` 為預設值），必須透過 `Logger` 輸出警告
+- [x] T009 [US2] 在 `server/config/index.js` 實作驗證邏輯（生產模式缺失 `JWT_SECRET` 則拋錯）
+- [x] T010 [US2] 在 `server/config/index.js` 實作非生產環境的安全預設值，並使用 `Logger` 記錄
+- [x] T011 [US2] 在 `server/config/index.js` 實作安全性警告（若生產模式下 `ADMIN_PASSWORD` 為預設值），必須透過 `Logger` 輸出警告
 
 **Checkpoint**: 系統配置驗證機制已完成
 
@@ -78,9 +78,9 @@ description: "環境變數管理功能實作任務清單"
 
 ### Implementation for User Story 3
 
-- [ ] T012 [US3] 更新 `package.json` 中的 `test` 腳本，使用 `cross-env NODE_ENV=test`
-- [ ] T013 [US3] 確保測試框架（如 Vitest）能正確讀取測試環境變數
-- [ ] T017 [C1] 為 `server/config/index.js` 撰寫單元測試，驗證不同環境下的預設值與拋錯邏輯
+- [x] T012 [US3] 更新 `package.json` 中的 `test` 腳本，使用 `cross-env NODE_ENV=test`
+- [x] T013 [US3] 確保測試框架（如 Vitest）能正確讀取測試環境變數
+- [x] T017 [C1] 為 `server/config/index.js` 撰寫單元測試，驗證不同環境下的預設值與拋錯邏輯
 
 **Checkpoint**: 測試環境已與開發/生產環境隔離
 
@@ -90,11 +90,11 @@ description: "環境變數管理功能實作任務清單"
 
 **Purpose**: 跨使用者故事的改進與安全性掃描
 
-- [ ] T014 [P] 執行 `quickstart.md` 中的驗證步驟，確保手冊準確無誤
-- [ ] T015 使用 `git-filter-repo` 徹底清理 Git 歷史紀錄中的機敏資訊
-- [ ] T016 [P] 更新 `README.md` 以包含環境變數設定的簡要說明
-- [ ] T018 [A1] 驗證 SC-003：在生產模式下故意缺失 `JWT_SECRET`，確認伺服器在 1 秒內中斷啟動
-- [ ] T019 [U1] 配置基本機敏資料掃描檢查（如使用 `secret-lint` 或簡單的 grep 腳本）以落實 US1-AS2 的攔截機制
+- [x] T014 [P] 執行 `quickstart.md` 中的驗證步驟，確保手冊準確無誤
+- [ ] T015 使用 `git-filter-repo` 徹底清理 Git 歷史紀錄中的機敏資訊 (Skip: 環境缺少工具)
+- [x] T016 [P] 更新 `README.md` 以包含環境變數設定的簡要說明
+- [x] T018 [A1] 驗證 SC-003：在生產模式下故意缺失 `JWT_SECRET`，確認伺服器在 1 秒內中斷啟動
+- [x] T019 [U1] 配置基本機敏資料掃描檢查（使用 grep 腳本）以落實 US1-AS2 的攔截機制
 
 ---
 

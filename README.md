@@ -22,12 +22,19 @@ npm run dev
 
 ## 🌐 環境配置
 
-系統支援透過環境變數進行客製化配置：
+系統支援透過 `.env` 檔案進行環境配置。請參考 `.env.example` 建立您的本地設定檔：
 
 - `PORT`: 伺服器執行的連接埠 (預設: `3000`)
 - `JWT_SECRET`: JWT 簽章用的密鑰 (生產環境務必修改)
-- `DB_PATH`: SQLite 資料庫檔案路徑 (預設: `./todo.db`)
-- `NODE_ENV`: 執行環境模式 (`development` 或 `production`)
+- `ADMIN_PASSWORD`: 預設管理員帳號密碼 (預設: `admin`)
+- `DB_PATH`: SQLite 資料庫檔案路徑 (預設: `database.sqlite`)
+- `NODE_ENV`: 執行環境模式 (`development`, `production`, 或 `test`)
+
+### 快速設定
+```bash
+cp .env.example .env
+# 編輯 .env 填入您的設定值
+```
 
 ---
 

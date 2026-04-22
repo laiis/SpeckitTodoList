@@ -1,9 +1,6 @@
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
-
-// TODO: 將 JWT_SECRET 移出程式碼並存放於環境變數中
-const JWT_SECRET = process.env.JWT_SECRET || 'your-default-secure-secret-key';
-const TOKEN_EXPIRY = '24h';
+const config = require('../config');
 
 /**
  * 簽發 JWT Token
@@ -12,7 +9,7 @@ const TOKEN_EXPIRY = '24h';
  */
 const generateToken = (payload) => {
   try {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
+    return jwt.sign(payload, config.jwt.secret, { expiresIn: config.jwt.expiresIn });
   } catch (error) {
     logger.error('Error generating JWT token:', error);
     throw error;
@@ -26,7 +23,7 @@ const generateToken = (payload) => {
  */
 const verifyToken = (token) => {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, config.jwt.secret);
   } catch (error) {
     // 區分權限過期與無效 Token
     if (error.name === 'TokenExpiredError') {
