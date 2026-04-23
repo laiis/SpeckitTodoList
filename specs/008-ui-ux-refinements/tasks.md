@@ -9,8 +9,9 @@
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T003 [P] 在 `style.css` 定義共通的 `.invalid` 樣式 (red border) 以供日期驗證使用
+- [ ] T003 [P] 在 `style.css` 定義共通的 `.invalid` 樣式 (red border) 與 `.error-message` (small red text)
 - [ ] T004 在 `script.js` 封裝 `requestAnimationFrame` 基礎同步函數以確保 60fps 效能
+- [ ] T024 [US2] 在 `services/taskService.js` (前端) 封裝 `validateDateRange(start, end)` 邏輯以符合憲法 IV
 
 ---
 
@@ -18,40 +19,41 @@
 
 **Goal**: 在看板頂部實作與內容同步的橫向捲動條。
 
-**Independent Test**: 當手動捲動頂部捲動條時，`.kanban-container` 應同步移動；當看板內容寬度改變時，頂部捲動條應自動調整。
+**Independent Test**: 當手動捲動頂部捲動條時，`.kanban-container` 應同步移動；當看板內容寬度改變時，頂部捲動條應自動調整或隱藏。
 
 ### Tests for User Story 1
 
 - [ ] T005 [P] [US1] 在 `tests/unit/ui-refinements.test.js` 撰寫測試驗證捲動同步函數的偏移量正確性
-- [ ] T006 [P] [US1] 在 `tests/unit/ui-refinements.test.js` 撰寫測試驗證 `ResizeObserver` 能正確觸發寬度更新
+- [ ] T006 [P] [US1] 在 `tests/unit/ui-refinements.test.js` 撰寫測試驗證 `ResizeObserver` 能正確觸發寬度更新及隱藏行為
 
 ### Implementation for User Story 1
 
 - [ ] T007 [US1] 在 `index.html` 的 `.kanban-container` 上方新增 `.kanban-scroll-top` 與其虛擬內容結構
 - [ ] T008 [P] [US1] 在 `style.css` 設定 `.kanban-scroll-top` 樣式 (overflow-x: auto, height: 15px)
 - [ ] T009 [US1] 在 `script.js` 初始化 `ResizeObserver` 以監聽 `.kanban-container` 的 `scrollWidth`
-- [ ] T010 [US1] 在 `script.js` 實作雙向捲動監聽，並使用 `requestAnimationFrame` 限制同步頻率 (延遲 < 16ms)
+- [ ] T010 [US1] 在 `script.js` 實作雙向捲動監聽，包含寬度不足時自動隱藏邏輯，並使用 `requestAnimationFrame` 限制同步頻率 (延遲 < 16ms)
 
 ---
 
 ## Phase 4: User Story 2 - 任務日期編輯 (Priority: P1)
 
-**Goal**: 在任務卡片內直接編輯起始與截止日期，並具備邏輯驗證。
+**Goal**: 在任務卡片內直接編輯起始與截止日期，具備邏輯驗證與錯誤訊息顯示。
 
-**Independent Test**: 編輯卡片日期後儲存，資料庫與 UI 標籤應即時更新；若起始日期晚於截止日期，則無法儲存。
+**Independent Test**: 編輯卡片日期後儲存，資料庫與 UI 標籤應即時更新；若驗證失敗，應顯示錯誤文字。
 
 ### Tests for User Story 2
 
-- [ ] T011 [P] [US2] 在 `tests/unit/ui-refinements.test.js` 撰寫日期邏輯驗證函數的測試案例 (包含合法、非法與空值)
-- [ ] T012 [P] [US2] 在 `tests/unit/ui-refinements.test.js` 撰寫 UI 測試，驗證非法日期時輸入框是否顯示紅框
+- [ ] T011 [P] [US2] 在 `tests/unit/ui-refinements.test.js` 撰寫 `taskService.validateDateRange` 的測試案例 (包含合法、非法與空值)
+- [ ] T012 [P] [US2] 在 `tests/unit/ui-refinements.test.js` 撰寫 UI 測試，驗證非法日期時輸入框是否顯示紅框與錯誤訊息
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] 修改 `script.js` 中的 `renderTodoItem` 函數，在編輯模式下渲染兩個 `<input type="date">`
-- [ ] T014 [P] [US2] 在 `style.css` 調整卡片內日期輸入框的間距與對齊方式
-- [ ] T015 [US2] 在 `script.js` 的儲存邏輯中加入 `startDate <= dueDate` 驗證，失敗時套用 `.invalid` 樣式
+- [ ] T013 [US2] 修改 `script.js` 中的 `renderTodoItem` 函數，在編輯模式下渲染日期輸入框與 `.error-message` 容器
+- [ ] T014 [P] [US2] 在 `style.css` 調整卡片內日期輸入框與錯誤訊息的樣式與間距
+- [ ] T015 [US2] 在 `script.js` 的儲存邏輯中調用 `taskService.validateDateRange`，失敗時顯示錯誤訊息並套用 `.invalid` 樣式
 - [ ] T016 [US2] 修改 `script.js` 的資料發送邏輯，支援將清空的日期欄位傳送為 `null`
 - [ ] T017 [US2] 更新 `script.js` 中的 `timeLabel` 顯示邏輯，確保儲存後即時反映新的日期區間
+- [ ] T025 [US2] 修改 `index.html` 的任務樣板結構，預留存放錯誤訊息的容器空間
 
 ---
 

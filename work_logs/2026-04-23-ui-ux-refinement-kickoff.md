@@ -37,3 +37,28 @@
 ## 下一步行動
 - 依照 `tasks.md` 執行 Phase 1 與 Phase 2 基礎設施建設。
 - 開始 Phase 3 (US1) 實作看板頂部捲動條。
+
+### 2026-04-23 規格分析與憲法校核 (Specification Analysis & Constitution Check)
+
+#### 進度摘要 (Progress Summary)
+- 執行了 `/speckit.analyze` 對 `008-ui-ux-refinements` 功能進行規格分析。
+- 發現並修復了一個 **CRITICAL** 憲法衝突：原本規劃將業務邏輯（日期驗證）直接實作於 `script.js`，已修補至 `services/taskService.js` (前端)。
+- 解決了 US2 的顯示歧義：確認驗證失敗時需顯示具體的文字錯誤訊息，並同步更新了 `spec.md` 與 `tasks.md` 的實作計畫。
+- 補齊了 US1 的覆蓋缺口：新增了「當看板內容寬度不足時自動隱藏頂部捲動條」的驗收標準與開發任務。
+
+#### 修訂內容 (Remediation Actions)
+- **spec.md**:
+  - 加入了橫向捲動條自動隱藏 (`display: none`) 的邏輯。
+  - 明確定義了驗證失敗時在輸入框下方顯示錯誤訊息。
+- **tasks.md**:
+  - 新增 `T024`: 在 `services/taskService.js` 封裝日期驗證邏輯（符合憲法條款 IV）。
+  - 新增 `T025`: 在 `index.html` 預留錯誤訊息容器空間。
+  - 調整 `T010`, `T013`: 補足自動隱藏邏輯與錯誤訊息渲染。
+
+#### 狀態 (Current Status)
+- ✅ 規格與任務清單已修補完畢，符合憲法規範。
+- ✅ 歧義與覆蓋缺口已全數解決。
+- 🚀 準備進入實作階段。
+
+---
+**Author**: Gemini CLI | **Status**: Analysis Completed & Repaired (憲法衝突已修正)
