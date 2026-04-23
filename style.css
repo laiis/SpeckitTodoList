@@ -121,33 +121,42 @@ body {
 .container {
     width: 95%;
     max-width: 1600px; /* 支援寬螢幕看板 */
-    max-height: 90vh; /* 限制最大高度以啟動捲動條 */
+    height: 90vh; /* T021: 限制高度為 90vh */
     padding: 2rem;
     border-radius: 24px;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* 啟用垂直捲動條 */
+    overflow: hidden; /* T021: 由內部 scroller 處理捲動 */
+    margin: 2vh auto;
 }
 
-/* T029: 容器自定義垂直捲動條 */
-.container::-webkit-scrollbar {
+/* T020: 主內容捲動區域 */
+.main-content-scroller {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.5rem; /* 預留捲動條空間 */
+    min-height: 0; /* 確保 flex 項目能縮小 */
+}
+
+/* T022: 捲動條樣式優化 */
+.main-content-scroller::-webkit-scrollbar {
     width: 8px;
 }
 
-.container::-webkit-scrollbar-track {
+.main-content-scroller::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.03);
     border-radius: 10px;
-    margin: 10px;
 }
 
-.container::-webkit-scrollbar-thumb {
+.main-content-scroller::-webkit-scrollbar-thumb {
     background: rgba(99, 102, 241, 0.2);
     border-radius: 10px;
     border: 2px solid transparent;
     background-clip: content-box;
 }
 
-.container::-webkit-scrollbar-thumb:hover {
+.main-content-scroller::-webkit-scrollbar-thumb:hover {
     background: rgba(99, 102, 241, 0.4);
     background-clip: content-box;
 }
@@ -194,6 +203,35 @@ header {
 .kanban-container::-webkit-scrollbar-thumb {
     background: rgba(99, 102, 241, 0.3);
     border-radius: 10px;
+}
+
+/* T008: 看板頂部捲動條樣式 */
+.kanban-scroll-top {
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 12px;
+    width: 100%;
+    margin-bottom: -4px;
+    flex-shrink: 0;
+    display: none; /* 預設隱藏，由 JS 判斷是否顯示 */
+}
+
+.kanban-scroll-top::-webkit-scrollbar {
+    height: 8px;
+}
+
+.kanban-scroll-top::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+.kanban-scroll-top::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 10px;
+}
+
+.kanban-dummy-content {
+    height: 1px;
 }
 
 /* 看板欄位 */
@@ -269,8 +307,13 @@ header {
     background: transparent;
     color: var(--text-main);
     font-size: 0.85rem;
+    line-height: 1.5;
+    height: calc(10 * 1.5em);
     outline: none;
     transition: all 0.3s ease;
+    resize: none;
+    white-space: pre-wrap;
+    overflow-y: auto;
 }
 
 .quick-add-input:focus {
@@ -359,21 +402,89 @@ header p {
 
 /* 輸入框區塊 */
 .input-section {
-    display: flex;
+    display: none; /* T035: 預設隱藏 */
+    flex-direction: column;
     gap: 10px;
     margin-bottom: 1.5rem;
+    background: var(--filter-bg);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.input-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.date-inputs {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--input-bg);
+    padding: 8px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+.date-inputs label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.todo-date {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+}
+
+#save-todo-btn {
+    padding: 0 20px;
+    height: 48px;
+    border-radius: 12px;
+    border: none;
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+#save-todo-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 #todo-input {
-    flex: 1;
+    width: 100%;
     padding: 12px 20px;
     border-radius: 12px;
     border: 1px solid var(--glass-border);
     background: var(--input-bg);
     color: var(--text-main);
     font-size: 1rem;
+    line-height: 1.5;
+    height: calc(10 * 1.5em);
     outline: none;
     transition: all 0.3s ease;
+    resize: none;
+    white-space: pre-wrap;
+    overflow-y: auto;
 }
 
 #todo-input::placeholder {
@@ -424,12 +535,12 @@ header p {
     color: var(--text-muted);
     border-radius: 8px;
     transition: all 0.3s ease;
+    font-weight: 500; /* T020: 預設固定字重防止 Layout Shift */
 }
 
 .filter-btn.active {
     background: var(--item-bg);
     color: var(--primary-color);
-    font-weight: 500;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
@@ -459,6 +570,45 @@ header p {
     margin-bottom: 10px;
     transition: all 0.3s ease;
     animation: fadeIn 0.3s ease forwards;
+    border-left: 4px solid transparent; /* 優先序邊框 */
+}
+
+.todo-item.priority-high { border-left-color: var(--danger); }
+.todo-item.priority-medium { border-left-color: #f59e0b; }
+.todo-item.priority-low { border-left-color: var(--success); }
+
+/* 優先序下拉選單 (項目內) */
+.priority-select-item {
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border: 1px solid var(--glass-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    cursor: pointer;
+    outline: none;
+    margin-right: 4px;
+}
+
+.priority-high .priority-select-item { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+.priority-medium .priority-select-item { background: #fef3c7; color: #f59e0b; border-color: #fcd34d; }
+.priority-low .priority-select-item { background: #d1fae5; color: #10b981; border-color: #6ee7b7; }
+
+.todo-item.overdue-highlight {
+    background: #fff5f5;
+    border: 2px solid #feb2b2;
+    box-shadow: 0 0 8px rgba(245, 101, 101, 0.2);
+}
+
+body.dark-mode .todo-item.overdue-highlight {
+    background: rgba(155, 44, 44, 0.2);
+    border: 2px solid rgba(245, 101, 101, 0.4);
+}
+
+.todo-item.overdue-highlight .todo-time {
+    color: #f56565;
+    font-weight: 600;
 }
 
 @keyframes fadeIn {
@@ -493,15 +643,38 @@ header p {
     margin-bottom: 4px;
 }
 
-.todo-item .todo-text {
+.todo-item .todo-text-display {
     flex: 1;
     min-width: 150px;
     font-size: 0.95rem;
     color: var(--text-main);
     cursor: pointer;
-    border: none;
-    background: transparent;
     padding: 2px 4px;
+    white-space: pre-wrap;
+    /* T013: 實作 3 行縮略 */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+    max-height: calc(1.5 * 3em);
+}
+
+.todo-item .todo-text.edit-mode {
+    flex: 1;
+    min-width: 150px;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    background: var(--item-bg);
+    padding: 4px;
+    line-height: 1.5;
+    height: calc(10 * 1.5em);
+    resize: none;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    outline: none;
 }
 
 /* 狀態下拉選單樣式 */
@@ -651,5 +824,54 @@ body.dark-mode .status-running .status-select {
 
 #clear-completed:hover {
     color: var(--danger);
+}
+
+/* UI/UX Refinements - Validation Styles */
+.invalid {
+    border: 1px solid #ff4d4d !important;
+    background-color: #fff2f2;
+}
+
+.error-message {
+    color: #ff4d4d;
+    font-size: 0.8rem;
+    margin-top: 4px;
+    display: none;
+}
+
+/* US2: 任務卡片內日期編輯樣式 */
+.todo-date-edit-row {
+    margin: 8px 0;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+}
+
+.edit-date-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap; /* 空間不足時允許換行 */
+}
+
+.edit-date-inputs input {
+    flex: 1 1 120px; /* 允許縮放，但設定基礎寬度 */
+    min-width: 0;   /* 允許縮小到小於內容寬度 */
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--glass-border);
+    background: var(--item-bg);
+    color: var(--text-main);
+    font-size: 0.8rem;
+    outline: none;
+}
+
+.edit-date-inputs input:focus {
+    border-color: var(--primary-color);
+}
+
+.edit-date-inputs span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
 }
 

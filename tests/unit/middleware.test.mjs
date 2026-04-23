@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // 先進行 mock
+vi.mock('../../server/services/tokenService', () => ({
+  verifyToken: vi.fn(),
+  __esModule: true
+}));
+
 const mockLogger = {
   warn: vi.fn(),
   error: vi.fn(),
@@ -17,12 +22,6 @@ vi.mock('../../server/utils/logger', () => ({
   __esModule: true
 }));
 
-vi.mock('../../server/services/tokenService', () => ({
-  verifyToken: vi.fn(),
-  __esModule: true
-}));
-
-// 使用 dynamic import 或 require (如果是 CJS) 來載入測試目標
 import authMiddleware from '../../server/middleware/auth';
 import authorize from '../../server/middleware/rbac';
 import { verifyToken } from '../../server/services/tokenService';
@@ -45,7 +44,7 @@ describe('Auth & RBAC Middleware Unit Tests', () => {
       req.cookies.token = 'valid-token';
       const decodedUser = { id: 1, username: 'testuser', role: 'admin' };
       // 確保 mock 返回正確的值
-      vi.mocked(verifyToken).mockReturnValue(decodedUser);
+      verifyToken.mockReturnValue(decodedUser);
 
       authMiddleware(req, res, next);
 
@@ -64,7 +63,7 @@ describe('Auth & RBAC Middleware Unit Tests', () => {
 
     it('should fail if token is invalid or expired', () => {
       req.headers.authorization = 'Bearer invalid-token';
-      vi.mocked(verifyToken).mockImplementation(() => { throw new Error('Invalid token'); });
+      verifyToken.mockImplementation(() => { throw new Error('Invalid token'); });
 
       authMiddleware(req, res, next);
 

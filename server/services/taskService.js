@@ -16,41 +16,51 @@ function escapeHTML(str) {
 
 const taskService = {
   /**
-   * 取得使用者的所有任務 (FR-012)
+   * 取得使用者的所有任務 (FR-012, FR-010)
    * @param {number} userId 
    */
   async getTasks(userId) {
-    return db.prepare('SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC')
+    // 按 priority 昇冪 (1 高 > 2 中 > 3 低) 及 created_at 降冪 (新 > 舊) 排序 (FR-010)
+    return db.prepare('SELECT * FROM tasks WHERE user_id = ? ORDER BY priority ASC, created_at DESC')
       .all(userId);
   },
 
   /**
-   * 建立新任務 (FR-012)
+   * 建立新任務 (FR-012, FR-009, FR-011, US8)
    * @param {number} userId 
    * @param {string} content 
    * @param {string} status 
+   * @param {number} priority 
+   * @param {string} dueDate
+   * @param {string} startDate
    */
-  async createTask(userId, content, status = 'todo') {
+  async createTask(userId, content, status = 'todo', priority = 2, dueDate = null, startDate = null) {
     const sanitizedContent = escapeHTML(content);
-    const result = db.prepare('INSERT INTO tasks (user_id, content, status) VALUES (?, ?, ?)')
-      .run(userId, sanitizedContent, status);
+    const result = db.prepare('INSERT INTO tasks (user_id, content, status, priority, due_date, start_date) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(userId, sanitizedContent, status, priority, dueDate, startDate);
     
-    return {
+    const newTask = {
       id: result.lastInsertRowid,
       content: sanitizedContent,
       status,
-      user_id: userId
+      user_id: userId,
+      priority,
+      due_date: dueDate,
+      start_date: startDate
     };
+
+    logger.info(`Task created: [ID: ${newTask.id}] by [User: ${userId}]. Priority: ${priority}. Start: ${startDate}. Due: ${dueDate}. Content: ${sanitizedContent.substring(0, 50)}${sanitizedContent.length > 50 ? '...' : ''}`);
+    return newTask;
   },
 
   /**
-   * 更新任務內容或狀態 (FR-012)
+   * 更新任務內容或狀態 (FR-012, FR-009, FR-011, US8)
    * @param {number} userId 
    * @param {number} taskId 
    * @param {Object} updates 
    */
   async updateTask(userId, taskId, updates) {
-    const { content, status } = updates;
+    const { content, status, priority, due_date, start_date } = updates;
     const sanitizedContent = content !== undefined ? escapeHTML(content) : undefined;
     
     // 確保任務屬於該使用者 (資料隔離)
@@ -61,15 +71,35 @@ const taskService = {
       throw new Error('Task not found or unauthorized');
     }
 
-    if (sanitizedContent !== undefined && status !== undefined) {
-      db.prepare('UPDATE tasks SET content = ?, status = ? WHERE id = ?')
-        .run(sanitizedContent, status, taskId);
-    } else if (sanitizedContent !== undefined) {
-      db.prepare('UPDATE tasks SET content = ? WHERE id = ?')
-        .run(sanitizedContent, taskId);
-    } else if (status !== undefined) {
-      db.prepare('UPDATE tasks SET status = ? WHERE id = ?')
-        .run(status, taskId);
+    let query = 'UPDATE tasks SET ';
+    const params = [];
+    const updateClauses = [];
+
+    if (sanitizedContent !== undefined) {
+      updateClauses.push('content = ?');
+      params.push(sanitizedContent);
+    }
+    if (status !== undefined) {
+      updateClauses.push('status = ?');
+      params.push(status);
+    }
+    if (priority !== undefined) {
+      updateClauses.push('priority = ?');
+      params.push(priority);
+    }
+    if (due_date !== undefined) {
+      updateClauses.push('due_date = ?');
+      params.push(due_date);
+    }
+    if (start_date !== undefined) {
+      updateClauses.push('start_date = ?');
+      params.push(start_date);
+    }
+
+    if (updateClauses.length > 0) {
+      query += updateClauses.join(', ') + ' WHERE id = ?';
+      params.push(taskId);
+      db.prepare(query).run(...params);
     }
 
     const finalUpdates = { ...updates };

@@ -25,13 +25,13 @@ router.get('/', async (req, res) => {
  * 建立新任務 (僅限 Editor, Admin)
  */
 router.post('/', authorize(['editor', 'admin']), async (req, res) => {
-  const { content, status } = req.body;
+  const { content, status, priority, due_date, start_date } = req.body;
   if (!content) {
     return res.status(400).json({ error: 'Content is required' });
   }
 
   try {
-    const newTask = await taskService.createTask(req.user.id, content, status);
+    const newTask = await taskService.createTask(req.user.id, content, status, priority, due_date, start_date);
     res.status(201).json(newTask);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create task' });

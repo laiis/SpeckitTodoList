@@ -6,9 +6,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 // 設定測試用的記憶體資料庫
 process.env.DB_PATH = ':memory:';
 
-// 在載入 app 之前先載入 db 確保初始化
-import db from '../../server/db/init';
-import app from '../../server/app';
+// 使用 require 確保單例
+const db = require('../../server/db/init');
+const app = require('../../server/app');
 
 describe('Auth & Data Isolation Integration Flow', () => {
   let adminCookie;
@@ -90,10 +90,13 @@ describe('Auth & Data Isolation Integration Flow', () => {
       // 手動在 DB 改角色為 editor (ID 2)，因為註冊預設是 viewer (ID 3)
       db.prepare('UPDATE users SET role_id = 2 WHERE username = ?').run('editor_user');
       
-      const loginRes = await request(app).post('/api/auth/login').send({ username: 'editor_user', password: 'password123' });
-      const editorCookie = loginRes.headers['set-cookie'][0].split(';')[0];
+      const editorLoginRes = await request(app).post('/api/auth/login').send({ username: 'editor_user', password: 'password123' });
+      const editorCookie = editorLoginRes.headers['set-cookie'][0].split(';')[0];
       
-      await request(app).post('/api/tasks').set('Cookie', editorCookie).send({ content: 'Editor Task 1' });
+      const createRes = await request(app).post('/api/tasks').set('Cookie', editorCookie).send({ content: 'Editor Task 1' });
+      if (createRes.status !== 201) {
+          console.log('Task Creation Failed:', createRes.status, createRes.body);
+      }
 
       // 驗證 Editor 只能看到自己的任務
       const editorTasks = await request(app).get('/api/tasks').set('Cookie', editorCookie);
