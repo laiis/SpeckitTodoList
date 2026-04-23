@@ -70,6 +70,11 @@ tests/
 4. **Phase 5 (US3)**: 實作 Ctrl+Enter 提交與列表 3 行縮略顯示。
 5. **Phase 6**: 最終驗證與效能檢查。
 6. **Phase 7**: 修正 `.container.glass` 佈局高度問題，確保 UI 完整性。
+7. **Phase 8 (US4)**: 整合佈局至 `.main-content-scroller`，實作固定 Header/Footer 且內容區域可滾動。
+
+## Technical Details (US4)
+- **Container Strategy**: 使用 Flexbox 佈局，Header 與 Footer 固定，中間區塊 `flex: 1; overflow-y: auto;`。
+- **Height Calculation**: `.main-content-scroller` 的高度應為父容器剩餘空間，確保其不會超出 `.container.glass`。
 
 ## Complexity Tracking
 
