@@ -8,39 +8,46 @@ Standard browser scrollbars only appear at the bottom of overflow containers. In
 ### Solution: Synchronized Dummy Scrollbar
 1.  **HTML Structure**:
     ```html
-    <div class="kanban-scroll-top" style="overflow-x: auto; overflow-y: hidden;">
+    <div class="kanban-scroll-top" style="overflow-x: auto; overflow-y: hidden; height: 15px;">
       <div class="kanban-dummy-content" style="height: 1px;"></div>
     </div>
     <div class="kanban-container" id="kanban-container">...</div>
     ```
-2.  **CSS**:
-    - `.kanban-scroll-top` should have the same width/margin as `.kanban-container`.
-    - `.kanban-dummy-content` width should be set via JS to match `kanbanContainer.scrollWidth`.
-3.  **JS Synchronization**:
-    ```javascript
-    const scrollTop = document.querySelector('.kanban-scroll-top');
-    const container = document.getElementById('kanban-container');
+2.  **Width Synchronization (ResizeObserver)**:
+    - **Decision**: Use `ResizeObserver` to monitor the `scrollWidth` of `.kanban-container`.
+    - **Rationale**: This ensures that even when columns are added, removed, or the window is resized, the top scrollbar's width remains perfectly in sync.
+3.  **Scroll Synchronization (Performance)**:
+    - **Performance Goal**: Sync delay < 16ms (60fps).
+    - **Implementation**:
+      ```javascript
+      const scrollTop = document.querySelector('.kanban-scroll-top');
+      const container = document.getElementById('kanban-container');
+      let isSyncing = false;
 
-    scrollTop.onscroll = () => {
-        container.scrollLeft = scrollTop.scrollLeft;
-    };
-    container.onscroll = () => {
-        scrollTop.scrollLeft = container.scrollLeft;
-    };
-    ```
+      const sync = (source, target) => {
+          if (!isSyncing) {
+              isSyncing = true;
+              target.scrollLeft = source.scrollLeft;
+              requestAnimationFrame(() => isSyncing = false);
+          }
+      };
+
+      scrollTop.onscroll = () => sync(scrollTop, container);
+      container.onscroll = () => sync(container, scrollTop);
+      ```
 
 ## US2: Date Editing in Card
 
 ### UI Integration
-- The current `todo-item` rendering logic creates a `timeLabel` span.
-- In edit mode, we will hide `timeLabel` and show two `<input type="date">` elements.
-- Labels: "起始:" and "截止:".
-- Data: `todo.start_date` and `todo.due_date`.
+- **Control**: Native `<input type="date">`.
+- **Validation**:
+  - `start_date <= due_date`.
+  - UI Feedback: Input border turns red (`border: 1px solid red`) and shows a validation message.
+- **Empty State**: Clearing the input and saving will set the date to `null` in the database.
 
-## US3: Filter Button Focus
+## US3: Filter Button Focus & Scroll
 
 ### Root Cause Analysis
-- Browsers might automatically scroll an element into view if it receives focus and is partially off-screen.
-- The `active` class transition might trigger a layout recalculation.
-- Ensure `button:focus { outline: none; }` or use `tabindex="-1"` if focus isn't needed for click interaction (while maintaining accessibility).
-- In `script.js`, ensure no `scrollIntoView()` is called during `render()`.
+- The default behavior of `<a>` tags with `href="#"` or specific focus events might trigger scrolling.
+- **Decision**: Use `event.preventDefault()` in click handlers or switch to `<button type="button">`.
+- **Rationale**: `preventDefault()` prevents the default browser anchor behavior that often triggers scrolling.

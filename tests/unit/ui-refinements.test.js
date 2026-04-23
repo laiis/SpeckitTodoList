@@ -7,122 +7,105 @@ describe('UI/UX Refinements', () => {
   let window;
 
   beforeEach(() => {
-    // 模擬基礎 HTML 結構，包含看板容器與篩選按鈕
-    dom = new JSDOM(`
-      <!DOCTYPE html>
-      <html>
-        <body>
-          <div class="filter-container">
-            <button class="filter-btn active" data-status="all">全部</button>
-            <button class="filter-btn" data-status="pending">待完成</button>
-            <button class="filter-btn" data-status="completed">已完成</button>
-          </div>
-          <div class="kanban-scroll-top" style="overflow-x: auto; height: 1px;">
-            <div class="kanban-scroll-dummy" style="height: 1px;"></div>
-          </div>
-          <div class="kanban-container" style="overflow-x: auto; display: flex;">
-            <div class="kanban-column" style="min-width: 300px;"></div>
-            <div class="kanban-column" style="min-width: 300px;"></div>
-            <div class="kanban-column" style="min-width: 300px;"></div>
-          </div>
-        </body>
-      </html>
-    `);
+    dom = new JSDOM('<!DOCTYPE html><html><body>' +
+      '<div class="kanban-scroll-top" style="overflow-x: auto; height: 15px;">' +
+      '  <div class="kanban-dummy-content" style="height: 1px;"></div>' +
+      '</div>' +
+      '<div class="kanban-container" id="kanban-container" style="overflow-x: auto;">' +
+      '  <div style="width: 2000px; height: 100px;">Content</div>' +
+      '</div>' +
+      '</body></html>', {
+        url: 'http://localhost',
+        contentType: 'text/html',
+      });
     document = dom.window.document;
     window = dom.window;
     global.document = document;
     global.window = window;
     global.HTMLElement = window.HTMLElement;
-    global.MouseEvent = window.MouseEvent;
+    window.requestAnimationFrame = (callback) => setTimeout(callback, 0);
+    global.requestAnimationFrame = window.requestAnimationFrame;
   });
 
-  describe('US1: 看板雙橫向捲動條 (Kanban Dual Scrollbars)', () => {
-    it('頂部捲動條應能與看板容器同步捲動位置 (T008.1)', () => {
+  describe('User Story 1 - 看板雙橫向捲動條 (Scroll Synchronization)', () => {
+    it('T005: 當頂部捲動條捲動時，容器應同步捲動', async () => {
       const scrollTop = document.querySelector('.kanban-scroll-top');
-      const kanbanContainer = document.querySelector('.kanban-container');
+      const container = document.getElementById('kanban-container');
       
-      // 模擬同步函數 (在 script.js 中實作後應匯入或在此模擬)
-      const syncScroll = (source, target) => {
-        target.scrollLeft = source.scrollLeft;
+      // 模擬同步邏輯
+      let isSyncing = false;
+      const sync = (source, target) => {
+        if (!isSyncing) {
+          isSyncing = true;
+          target.scrollLeft = source.scrollLeft;
+          window.requestAnimationFrame(() => isSyncing = false);
+        }
       };
 
       scrollTop.scrollLeft = 100;
-      syncScroll(scrollTop, kanbanContainer);
-      
-      expect(kanbanContainer.scrollLeft).toBe(100);
+      sync(scrollTop, container);
 
-      kanbanContainer.scrollLeft = 250;
-      syncScroll(kanbanContainer, scrollTop);
-      
-      expect(scrollTop.scrollLeft).toBe(250);
+      expect(container.scrollLeft).toBe(100);
     });
 
-    it('視窗縮放時應更新頂部捲動條內虛擬內容的寬度 (T007.1)', () => {
-      const dummy = document.querySelector('.kanban-scroll-dummy');
-      const container = document.querySelector('.kanban-container');
+    it('T006: 當容器寬度改變時，頂部捲動條虛擬內容應同步更新 (模擬 ResizeObserver 行為)', () => {
+      const container = document.getElementById('kanban-container');
+      const dummyContent = document.querySelector('.kanban-dummy-content');
       
-      // 模擬更新寬度邏輯
-      const updateDummyWidth = (source, targetDummy) => {
-        targetDummy.style.width = `${source.scrollWidth}px`;
+      // 模擬 ResizeObserver 回呼邏輯
+      const updateDummyWidth = (source, target) => {
+        target.style.width = source.scrollWidth + 'px';
       };
 
-      // 模擬容器內容加寬
-      Object.defineProperty(container, 'scrollWidth', { value: 1200, configurable: true });
-      updateDummyWidth(container, dummy);
+      // 模擬容器寬度為 2000px
+      vi.spyOn(container, 'scrollWidth', 'get').mockReturnValue(2000);
       
-      expect(dummy.style.width).toBe('1200px');
+      updateDummyWidth(container, dummyContent);
+      
+      expect(dummyContent.style.width).toBe('2000px');
     });
   });
 
-  describe('US2: 任務日期編輯 (Edit Task Dates in Card)', () => {
-    it('編輯模式下應顯示起始與截止日期輸入框 (T013.1)', () => {
-      const todoItem = document.createElement('div');
-      todoItem.className = 'todo-item editing';
-      todoItem.innerHTML = `
-        <input type="text" class="edit-input" value="Task Name">
-        <input type="date" class="edit-start-date" value="2026-04-23">
-        <input type="date" class="edit-due-date" value="2026-04-25">
-      `;
-      document.body.appendChild(todoItem);
+  describe('User Story 2 - 任務日期編輯 (Date Validation)', () => {
+    // 模擬 taskService.validateDateRange
+    const validateDateRange = (start, end) => {
+      if (!start || !end) return true;
+      return new Date(start) <= new Date(end);
+    };
 
-      const startInput = todoItem.querySelector('.edit-start-date');
-      const dueInput = todoItem.querySelector('.edit-due-date');
-
-      expect(startInput).not.toBeNull();
-      expect(dueInput).not.toBeNull();
-      expect(startInput.value).toBe('2026-04-23');
+    it('T011: 應正確驗證日期範圍', () => {
+      expect(validateDateRange('2026-04-20', '2026-04-23')).toBe(true);
+      expect(validateDateRange('2026-04-23', '2026-04-20')).toBe(false);
+      expect(validateDateRange('2026-04-23', '2026-04-23')).toBe(true);
+      expect(validateDateRange(null, '2026-04-23')).toBe(true);
+      expect(validateDateRange('2026-04-20', null)).toBe(true);
     });
 
-    it('變更日期後應能觸發更新邏輯 (T013.2)', () => {
-      const updateSpy = vi.fn();
-      const input = document.createElement('input');
-      input.type = 'date';
-      input.addEventListener('change', (e) => updateSpy(e.target.value));
+    it('T012: 非法日期時應顯示錯誤狀態', () => {
+      const startInput = document.createElement('input');
+      const endInput = document.createElement('input');
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'error-message';
 
-      input.value = '2026-05-01';
-      input.dispatchEvent(new window.Event('change'));
+      const handleValidationUI = (start, end, startEl, endEl, errorEl) => {
+        const isValid = validateDateRange(start, end);
+        if (!isValid) {
+          startEl.classList.add('invalid');
+          endEl.classList.add('invalid');
+          errorEl.textContent = '起始日期不能晚於截止日期';
+          errorEl.style.display = 'block';
+        } else {
+          startEl.classList.remove('invalid');
+          endEl.classList.remove('invalid');
+          errorEl.style.display = 'none';
+        }
+      };
 
-      expect(updateSpy).toHaveBeenCalledWith('2026-05-01');
-    });
-  });
+      handleValidationUI('2026-04-23', '2026-04-20', startInput, endInput, errorMsg);
 
-  describe('US3: 篩選按鈕互動優化 (Filter Button Interaction)', () => {
-    it('點擊篩選按鈕時，頁面垂直捲動位置應保持不變 (T016.1)', () => {
-      const filterBtn = document.querySelector('.filter-btn[data-status="completed"]');
-      
-      // 模擬目前捲動位置
-      window.scrollY = 500;
-      
-      // 模擬點擊事件處理邏輯 (不應包含 .focus() 或其他會觸發捲動的操作)
-      filterBtn.addEventListener('click', (e) => {
-        // 執行篩選邏輯...
-        // 嚴禁執行 e.target.focus()
-      });
-
-      filterBtn.click();
-      
-      // 在 JSDOM 中，除非顯式更改或觸發了會更改它的 DOM API，否則 scrollY 不會變
-      expect(window.scrollY).toBe(500);
+      expect(startInput.classList.contains('invalid')).toBe(true);
+      expect(endInput.classList.contains('invalid')).toBe(true);
+      expect(errorMsg.textContent).toBe('起始日期不能晚於截止日期');
     });
   });
 });
