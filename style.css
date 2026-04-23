@@ -205,6 +205,35 @@ header {
     border-radius: 10px;
 }
 
+/* T008: 看板頂部捲動條樣式 */
+.kanban-scroll-top {
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 12px;
+    width: 100%;
+    margin-bottom: -4px;
+    flex-shrink: 0;
+    display: none; /* 預設隱藏，由 JS 判斷是否顯示 */
+}
+
+.kanban-scroll-top::-webkit-scrollbar {
+    height: 8px;
+}
+
+.kanban-scroll-top::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+.kanban-scroll-top::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 10px;
+}
+
+.kanban-dummy-content {
+    height: 1px;
+}
+
 /* 看板欄位 */
 .kanban-column {
     flex: 1 0 280px;
@@ -506,12 +535,12 @@ header p {
     color: var(--text-muted);
     border-radius: 8px;
     transition: all 0.3s ease;
+    font-weight: 500; /* T020: 預設固定字重防止 Layout Shift */
 }
 
 .filter-btn.active {
     background: var(--item-bg);
     color: var(--primary-color);
-    font-weight: 500;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
@@ -795,5 +824,52 @@ body.dark-mode .status-running .status-select {
 
 #clear-completed:hover {
     color: var(--danger);
+}
+
+/* UI/UX Refinements - Validation Styles */
+.invalid {
+    border: 1px solid #ff4d4d !important;
+    background-color: #fff2f2;
+}
+
+.error-message {
+    color: #ff4d4d;
+    font-size: 0.8rem;
+    margin-top: 4px;
+    display: none;
+}
+
+/* US2: 任務卡片內日期編輯樣式 */
+.todo-date-edit-row {
+    margin: 8px 0;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+}
+
+.edit-date-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-date-inputs input {
+    flex: 1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--glass-border);
+    background: var(--item-bg);
+    color: var(--text-main);
+    font-size: 0.8rem;
+    outline: none;
+}
+
+.edit-date-inputs input:focus {
+    border-color: var(--primary-color);
+}
+
+.edit-date-inputs span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
 }
 

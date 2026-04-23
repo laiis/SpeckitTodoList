@@ -13,7 +13,7 @@ const config = require('../config');
 const dbPath = config.database.path;
 const db = new Database(dbPath);
 db.instanceId = Math.random().toString(36).substring(7);
-console.log(`[DB INIT] DB Instance Created: ${db.instanceId} for path: ${dbPath}`);
+logger.info(`[DB INIT] DB Instance Created: ${db.instanceId} for path: ${dbPath}`);
 
 // 啟用外鍵約束 (SC-003)
 db.pragma('foreign_keys = ON');

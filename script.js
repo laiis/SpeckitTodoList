@@ -1,10 +1,23 @@
 import { authService } from './services/auth.js';
+import { taskService } from './services/taskService.js';
 
 // 提取核心邏輯以利測試
 // 憲法要求：封裝日誌記錄，嚴禁使用 console.log
 const Logger = {
     info: (...args) => {},
     error: (...args) => {}
+};
+
+// T004: 封裝 requestAnimationFrame 基礎同步函數以確保 60fps 效能
+const UISync = {
+    isSyncing: false,
+    sync: (source, target) => {
+        if (!UISync.isSyncing) {
+            UISync.isSyncing = true;
+            target.scrollLeft = source.scrollLeft;
+            window.requestAnimationFrame(() => UISync.isSyncing = false);
+        }
+    }
 };
 
 export class TodoService {
@@ -158,6 +171,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     let activeTabStatus = sessionStorage.getItem('activeTabStatus') || TodoService.Status.TODO;
 
     const kanbanContainer = document.getElementById('kanban-container');
+    const kanbanScrollTop = document.getElementById('kanban-scroll-top');
+    const kanbanDummyContent = document.getElementById('kanban-dummy-content');
+
+    if (kanbanScrollTop && kanbanDummyContent && kanbanContainer) {
+        // T009: 初始化 ResizeObserver 監聽看板寬度變化
+        const resizeObserver = new ResizeObserver(() => {
+            const scrollWidth = kanbanContainer.scrollWidth;
+            kanbanDummyContent.style.width = scrollWidth + 'px';
+            
+            // 寬度不足時自動隱藏邏輯
+            if (scrollWidth <= kanbanContainer.clientWidth) {
+                kanbanScrollTop.style.display = 'none';
+            } else {
+                kanbanScrollTop.style.display = 'block';
+            }
+        });
+        resizeObserver.observe(kanbanContainer);
+
+        // T010: 實作雙向捲動同步，使用 UISync.sync 確保效能
+        kanbanScrollTop.onscroll = () => UISync.sync(kanbanScrollTop, kanbanContainer);
+        kanbanContainer.onscroll = () => UISync.sync(kanbanContainer, kanbanScrollTop);
+    }
+
     const mobileTabs = document.getElementById('mobile-tabs');
     const itemsLeft = document.getElementById('items-left');
     const filterBtns = document.querySelectorAll('.filter-btn');
@@ -386,15 +422,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         textInput.value = unescapeHTML(todo.content); // 編輯時還原為原始文字
         textInput.style.display = 'none';
 
+        // T013: 渲染日期編輯器與錯誤訊息容器
+        const dateEditRow = document.createElement('div');
+        dateEditRow.className = 'todo-date-edit-row';
+        dateEditRow.style.display = 'none';
+        dateEditRow.innerHTML = `
+            <div class="edit-date-inputs">
+                <input type="date" class="edit-start-date" value="${todo.start_date || ''}">
+                <span>至</span>
+                <input type="date" class="edit-due-date" value="${todo.due_date || ''}">
+            </div>
+            <div class="error-message">起始日期不能晚於截止日期</div>
+        `;
+
+        const editStartInput = dateEditRow.querySelector('.edit-start-date');
+        const editDueInput = dateEditRow.querySelector('.edit-due-date');
+        const errorMsg = dateEditRow.querySelector('.error-message');
+
         const toggleEditMode = (isEditing) => {
             if (isEditing) {
                 textDisplay.style.display = 'none';
                 textInput.style.display = 'block';
+                dateEditRow.style.display = 'block';
                 textInput.rows = 10;
                 textInput.focus();
             } else {
                 textInput.style.display = 'none';
+                dateEditRow.style.display = 'none';
                 textDisplay.style.display = '';
+                
+                // 重置驗證狀態
+                editStartInput.classList.remove('invalid');
+                editDueInput.classList.remove('invalid');
+                errorMsg.style.display = 'none';
             }
         };
 
@@ -414,6 +474,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         headerRow.appendChild(textInput);
         
         todoContent.appendChild(headerRow);
+        todoContent.appendChild(dateEditRow);
         todoContent.appendChild(timeLabel);
 
         item.appendChild(checkbox);
@@ -437,9 +498,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         textInput.addEventListener('blur', async () => {
+            const newContent = textInput.value.trim();
+            const newStart = editStartInput.value || null;
+            const newDue = editDueInput.value || null;
+
+            // T015: 調用 taskService.validateDateRange
+            if (!taskService.validateDateRange(newStart, newDue)) {
+                editStartInput.classList.add('invalid');
+                editDueInput.classList.add('invalid');
+                errorMsg.style.display = 'block';
+                // 保持編輯模式
+                textInput.focus();
+                return;
+            }
+
             toggleEditMode(false);
-            if (textInput.value.trim() !== todo.content) {
-                await todoService.updateTaskContent(todo.id, textInput.value.trim());
+            
+            const hasContentChanged = newContent !== todo.content;
+            const hasStartChanged = (newStart || '') !== (todo.start_date || '');
+            const hasDueChanged = (newDue || '') !== (todo.due_date || '');
+
+            if (hasContentChanged || hasStartChanged || hasDueChanged) {
+                // T016: 支援傳送 null (透過 updateTask 統一處理)
+                await todoService.updateTask(todo.id, { 
+                    content: newContent,
+                    start_date: newStart,
+                    due_date: newDue
+                });
                 render();
             }
         });
@@ -529,7 +614,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault(); // T018: 防止預設行為導致的捲動
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.getAttribute('data-filter');
