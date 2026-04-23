@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         textInput.addEventListener('blur', async () => {
             textInput.style.display = 'none';
-            textDisplay.style.display = '-webkit-box';
+            textDisplay.style.display = '';
             if (textInput.value.trim() !== todo.content) {
                 await todoService.updateTaskContent(todo.id, textInput.value.trim());
                 render();

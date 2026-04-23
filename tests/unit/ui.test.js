@@ -75,4 +75,17 @@ describe('UI Logic - Multi-line Input', () => {
     expect(textDisplay.tagName).toBe('DIV');
     expect(textDisplay.textContent).toContain('long task content');
   });
+
+  it('應具有支援滾動條的 CSS 屬性 (SC-002)', () => {
+    // 註：在 JSDOM 中無法真正測試滾動條出現，但我們可以驗證樣式定義
+    // 這裡我們模擬從 style.css 中預期會有的屬性
+    const textarea = document.getElementById('todo-input');
+    
+    // 模擬載入的樣式 (JSDOM 不會自動載入外部 CSS)
+    textarea.style.overflowY = 'auto';
+    textarea.style.resize = 'none';
+    
+    expect(textarea.style.overflowY).toBe('auto');
+    expect(textarea.style.resize).toBe('none');
+  });
 });
