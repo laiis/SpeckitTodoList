@@ -49,8 +49,6 @@
 - [x] T007 [US1] 更新 `public/script.js` 以從 `textarea.value` 獲取內容並處理 DOM 元素選擇
 - [x] T008 [US1] 更新 `public/style.css` 加上 `white-space: pre-wrap;` 確保顯示時保留換行
 
-**Checkpoint**: 支援多行輸入與顯示，MVP 核心功能完成。
-
 ---
 
 ## Phase 4: User Story 2 - 長文本視覺管理 (Priority: P2)
@@ -65,8 +63,6 @@
 - [x] T010 [US2] 在 `public/style.css` 設定 textarea 為固定高度並禁用 resize 調整大小
 - [x] T011 [US2] 在 `public/style.css` 確保超過內容高度時出現垂直滾動條
 
-**Checkpoint**: 輸入框視覺佈局穩定，長文本管理優化。
-
 ---
 
 ## Phase 5: User Story 3 - 互動優化與列表縮略 (Priority: P3)
@@ -77,6 +73,7 @@
 
 ### Implementation for User Story 3
 
+- [ ] T013.1 [P] [US3] 撰寫單元測試驗證列表任務內容的 3 行縮略 CSS 屬性於 `tests/unit/ui.test.js`
 - [x] T012 [US3] 在 `public/script.js` 為 textarea 增加 `keydown` 監聽器，實作 `Ctrl + Enter` 提交邏輯
 - [x] T013 [US3] 在 `public/style.css` 使用 `-webkit-line-clamp` 實作列表任務內容的 3 行縮略顯示
 
@@ -93,17 +90,26 @@
 
 ---
 
+## Phase 7: UI Refinement (Bug Fix)
+
+**Purpose**: 修正佈局問題，確保在多行輸入下看板內容依然可見
+
+- [ ] T018 修正 `public/style.css` 中 `.container.glass` 的固定高度問題，將其改為自適應或調整最大高度，以確保 `.kanban.container` 內容不被遮蔽
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
 
 - **Setup (Phase 1)** -> **Foundational (Phase 2)** -> **User Stories (Phase 3+)**
 - **User Story 1 (P1)** 必須優先於 **US2** 與 **US3** 的細節調整。
+- **Phase 7** 相依於 **Phase 4 (US2)**，因為多行輸入框的高度固定可能觸發此佈局問題。
 
 ### Parallel Opportunities
 
-- T004 與 T005 可並行執行（測試撰寫）。
-- T010 與 T011 可並行執行（樣式定義）。
+- T004 與 T005 可並行執行。
+- T010 與 T011 可並行執行。
 
 ---
 
@@ -120,3 +126,4 @@
 1. 達成換行支援 (US1)。
 2. 加入視覺限制 (US2)。
 3. 優化操作體驗 (US3)。
+4. 修正佈局副作用 (Phase 7)。

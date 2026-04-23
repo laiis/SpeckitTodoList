@@ -62,6 +62,15 @@ tests/
 
 **Structure Decision**: 採用 Single Project 結構，直接修改現有前端檔案並補強測試。
 
+## Implementation Phases
+
+1. **Phase 1-2**: 環境準備與基礎測試架構建置。
+2. **Phase 3 (US1)**: 替換輸入框為 textarea，確保換行符正確儲存與顯示。
+3. **Phase 4 (US2)**: 設定固定 10 行高度與垂直滾動條。
+4. **Phase 5 (US3)**: 實作 Ctrl+Enter 提交與列表 3 行縮略顯示。
+5. **Phase 6**: 最終驗證與效能檢查。
+6. **Phase 7**: 修正 `.container.glass` 佈局高度問題，確保 UI 完整性。
+
 ## Complexity Tracking
 
 *No violations detected.*
