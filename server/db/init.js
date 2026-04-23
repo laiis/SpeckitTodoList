@@ -12,6 +12,8 @@ const config = require('../config');
 
 const dbPath = config.database.path;
 const db = new Database(dbPath);
+db.instanceId = Math.random().toString(36).substring(7);
+console.log(`[DB INIT] DB Instance Created: ${db.instanceId} for path: ${dbPath}`);
 
 // 啟用外鍵約束 (SC-003)
 db.pragma('foreign_keys = ON');
@@ -42,13 +44,16 @@ function initSchema() {
     )
   `).run();
 
-  // 更新 Tasks 表 (新增 user_id)
+  // 更新 Tasks 表 (新增 user_id, priority, created_at)
   db.prepare(`
     CREATE TABLE IF NOT EXISTS tasks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       content TEXT NOT NULL,
       status TEXT DEFAULT 'todo',
       user_id INTEGER,
+      priority INTEGER DEFAULT 2,
+      due_date DATE,
+      start_date DATE,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users (id)
     )
@@ -56,10 +61,29 @@ function initSchema() {
 
   // 檢查是否需要新增 user_id 欄位 (針對現有資料庫)
   const tableInfo = db.prepare("PRAGMA table_info(tasks)").all();
+  
   const hasUserId = tableInfo.some(col => col.name === 'user_id');
   if (!hasUserId) {
     db.prepare("ALTER TABLE tasks ADD COLUMN user_id INTEGER REFERENCES users(id)").run();
     logger.info('Added user_id column to tasks table.');
+  }
+
+  const hasPriority = tableInfo.some(col => col.name === 'priority');
+  if (!hasPriority) {
+    db.prepare("ALTER TABLE tasks ADD COLUMN priority INTEGER DEFAULT 2").run();
+    logger.info('Added priority column to tasks table.');
+  }
+
+  const hasDueDate = tableInfo.some(col => col.name === 'due_date');
+  if (!hasDueDate) {
+    db.prepare("ALTER TABLE tasks ADD COLUMN due_date DATE").run();
+    logger.info('Added due_date column to tasks table.');
+  }
+
+  const hasStartDate = tableInfo.some(col => col.name === 'start_date');
+  if (!hasStartDate) {
+    db.prepare("ALTER TABLE tasks ADD COLUMN start_date DATE").run();
+    logger.info('Added start_date column to tasks table.');
   }
 
   // 建立索引以優化資料隔離查詢 (SC-001)

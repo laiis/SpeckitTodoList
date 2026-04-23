@@ -4,14 +4,19 @@
 
 ### TodoItem (既存實體)
 
-本功能不涉及資料庫結構變更，但需明確資料流中的換行符處理。
+本功能涉及資料庫結構變更，需增加優先序與日期欄位。
 
 - **Fields**:
     - `id`: INTEGER (PK)
     - `text`: TEXT - 待辦事項內容。
         - **Validation**: 儲存時應保留換行符 (`\n`)。
-        - **Constraints**: 雖然資料庫支援無限長度，但前端應有基本的保護（如限制 2000 字元）。
     - `status`: TEXT
+    - `priority`: INTEGER - 優先序狀態。
+        - `1`: High (高優先序)
+        - `2`: Medium (中優先序，預設值)
+        - `3`: Low (低優先序)
+    - `due_date`: DATE - 預計完成日期 (格式: YYYY-MM-DD)。
+    - `created_at`: DATETIME - 建立/起始時間（用於排序）。
     - `user_id`: INTEGER
 
 ## Data Flow & Transitions

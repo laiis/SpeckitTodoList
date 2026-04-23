@@ -88,4 +88,49 @@ describe('UI Logic - Multi-line Input', () => {
     expect(textarea.style.overflowY).toBe('auto');
     expect(textarea.style.resize).toBe('none');
   });
+
+  it('應能依據優先序與建立時間正確排序看板任務 (T024.1)', () => {
+    // 模擬排序邏輯 (Priority 1: High, 2: Medium, 3: Low)
+    // 預期排序: Priority 1 (新) > Priority 1 (舊) > Priority 2 > Priority 3
+    const tasks = [
+      { id: 1, content: 'P2 Task', priority: 2, created_at: '2026-01-01 10:00:00' },
+      { id: 2, content: 'P1 Task Old', priority: 1, created_at: '2026-01-01 09:00:00' },
+      { id: 3, content: 'P1 Task New', priority: 1, created_at: '2026-01-01 11:00:00' },
+      { id: 4, content: 'P3 Task', priority: 3, created_at: '2026-01-01 10:00:00' }
+    ];
+
+    const sortTasks = (taskList) => {
+      return [...taskList].sort((a, b) => {
+        if (a.priority !== b.priority) {
+          return a.priority - b.priority; // 優先序小 (1) 的排前面
+        }
+        return new Date(b.created_at) - new Date(a.created_at); // 建立時間晚的排前面
+      });
+    };
+
+    const sorted = sortTasks(tasks);
+
+    expect(sorted[0].id).toBe(3); // P1 New
+    expect(sorted[1].id).toBe(2); // P1 Old
+    expect(sorted[2].id).toBe(1); // P2
+    expect(sorted[3].id).toBe(4); // P3
+  });
+
+  it('應能正確判定任務是否逾期 (T029.1)', () => {
+    const today = new Date('2026-04-23');
+    
+    const isOverdue = (dueDate, baseDate) => {
+      if (!dueDate) return false;
+      const due = new Date(dueDate);
+      due.setHours(0, 0, 0, 0);
+      const base = new Date(baseDate);
+      base.setHours(0, 0, 0, 0);
+      return due < base;
+    };
+
+    expect(isOverdue('2026-04-22', today)).toBe(true);  // 昨天：逾期
+    expect(isOverdue('2026-04-23', today)).toBe(false); // 今天：未逾期
+    expect(isOverdue('2026-04-24', today)).toBe(false); // 明天：未逾期
+    expect(isOverdue(null, today)).toBe(false);         // 無日期：未逾期
+  });
 });

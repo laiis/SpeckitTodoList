@@ -121,35 +121,42 @@ body {
 .container {
     width: 95%;
     max-width: 1600px; /* 支援寬螢幕看板 */
-    min-height: 80vh; /* 確保至少有足夠高度顯示看板與多行輸入 */
-    max-height: 95vh; /* 增加最大高度以利用更多螢幕空間 */
+    height: 90vh; /* T021: 限制高度為 90vh */
     padding: 2rem;
     border-radius: 24px;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* 啟用垂直捲動條 */
+    overflow: hidden; /* T021: 由內部 scroller 處理捲動 */
     margin: 2vh auto;
 }
 
-/* T029: 容器自定義垂直捲動條 */
-.container::-webkit-scrollbar {
+/* T020: 主內容捲動區域 */
+.main-content-scroller {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.5rem; /* 預留捲動條空間 */
+    min-height: 0; /* 確保 flex 項目能縮小 */
+}
+
+/* T022: 捲動條樣式優化 */
+.main-content-scroller::-webkit-scrollbar {
     width: 8px;
 }
 
-.container::-webkit-scrollbar-track {
+.main-content-scroller::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.03);
     border-radius: 10px;
-    margin: 10px;
 }
 
-.container::-webkit-scrollbar-thumb {
+.main-content-scroller::-webkit-scrollbar-thumb {
     background: rgba(99, 102, 241, 0.2);
     border-radius: 10px;
     border: 2px solid transparent;
     background-clip: content-box;
 }
 
-.container::-webkit-scrollbar-thumb:hover {
+.main-content-scroller::-webkit-scrollbar-thumb:hover {
     background: rgba(99, 102, 241, 0.4);
     background-clip: content-box;
 }
@@ -366,13 +373,76 @@ header p {
 
 /* 輸入框區塊 */
 .input-section {
-    display: flex;
+    display: none; /* T035: 預設隱藏 */
+    flex-direction: column;
     gap: 10px;
     margin-bottom: 1.5rem;
+    background: var(--filter-bg);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.input-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.date-inputs {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--input-bg);
+    padding: 8px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+.date-inputs label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.todo-date {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+}
+
+#save-todo-btn {
+    padding: 0 20px;
+    height: 48px;
+    border-radius: 12px;
+    border: none;
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+#save-todo-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 #todo-input {
-    flex: 1;
+    width: 100%;
     padding: 12px 20px;
     border-radius: 12px;
     border: 1px solid var(--glass-border);
@@ -471,6 +541,45 @@ header p {
     margin-bottom: 10px;
     transition: all 0.3s ease;
     animation: fadeIn 0.3s ease forwards;
+    border-left: 4px solid transparent; /* 優先序邊框 */
+}
+
+.todo-item.priority-high { border-left-color: var(--danger); }
+.todo-item.priority-medium { border-left-color: #f59e0b; }
+.todo-item.priority-low { border-left-color: var(--success); }
+
+/* 優先序下拉選單 (項目內) */
+.priority-select-item {
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border: 1px solid var(--glass-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    cursor: pointer;
+    outline: none;
+    margin-right: 4px;
+}
+
+.priority-high .priority-select-item { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+.priority-medium .priority-select-item { background: #fef3c7; color: #f59e0b; border-color: #fcd34d; }
+.priority-low .priority-select-item { background: #d1fae5; color: #10b981; border-color: #6ee7b7; }
+
+.todo-item.overdue-highlight {
+    background: #fff5f5;
+    border: 2px solid #feb2b2;
+    box-shadow: 0 0 8px rgba(245, 101, 101, 0.2);
+}
+
+body.dark-mode .todo-item.overdue-highlight {
+    background: rgba(155, 44, 44, 0.2);
+    border: 2px solid rgba(245, 101, 101, 0.4);
+}
+
+.todo-item.overdue-highlight .todo-time {
+    color: #f56565;
+    font-weight: 600;
 }
 
 @keyframes fadeIn {

@@ -72,4 +72,36 @@ describe('Todo Flow Integration - Multi-line Support', () => {
     const updatedTask = getRes.body.find(t => t.id === taskId);
     expect(updatedTask.content).toBe(newMultiLineContent);
   });
+
+  it('應能建立並儲存包含優先序的任務 (T024.2)', async () => {
+    const res = await request(app)
+      .post('/api/tasks')
+      .set('Cookie', adminCookie)
+      .send({ content: '高優先序任務', status: 'todo', priority: 1 });
+
+    expect(res.status).toBe(201);
+    expect(res.body.priority).toBe(1);
+  });
+
+  it('應能建立並儲存包含截止日期的任務', async () => {
+    const dueDate = '2026-12-31';
+    const res = await request(app)
+      .post('/api/tasks')
+      .set('Cookie', adminCookie)
+      .send({ content: '具日期的任務', status: 'todo', due_date: dueDate });
+
+    expect(res.status).toBe(201);
+    expect(res.body.due_date).toBe(dueDate);
+  });
+
+  it('應能建立並儲存包含起始日期的任務 (US8)', async () => {
+    const startDate = '2026-04-23';
+    const res = await request(app)
+      .post('/api/tasks')
+      .set('Cookie', adminCookie)
+      .send({ content: '具起始日期的任務', status: 'todo', start_date: startDate });
+
+    expect(res.status).toBe(201);
+    expect(res.body.start_date).toBe(startDate);
+  });
 });

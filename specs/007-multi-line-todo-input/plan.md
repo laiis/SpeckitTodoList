@@ -67,14 +67,22 @@ tests/
 1. **Phase 1-2**: 環境準備與基礎測試架構建置。
 2. **Phase 3 (US1)**: 替換輸入框為 textarea，確保換行符正確儲存與顯示。
 3. **Phase 4 (US2)**: 設定固定 10 行高度與垂直滾動條。
-4. **Phase 5 (US3)**: 實作 Ctrl+Enter 提交與列表 3 行縮略顯示。
-5. **Phase 6**: 最終驗證與效能檢查。
-6. **Phase 7**: 修正 `.container.glass` 佈局高度問題，確保 UI 完整性。
-7. **Phase 8 (US4)**: 整合佈局至 `.main-content-scroller`，實作固定 Header/Footer 且內容區域可滾動。
+5. Phase 5 (US3): 實作 Ctrl+Enter 提交與列表 3 行縮略顯示。
+6. Phase 6: 最終驗證與效能檢查。
+7. Phase 7: 修正 `.container.glass` 佈局高度問題，確保 UI 完整性。
+8. Phase 8 (US4): 整合佈局至 `.main-content-scroller`，實作固定 Header/Footer 且內容區域可滾動。
+9. Phase 9 (US5): 實作任務優先序 (Priority) 功能與看板自定義排序邏輯。
+10. Phase 10 (US6): 實作預計完成日期 (Due Date) 功能與逾期高亮 (Highlight) 效果。
+11. Phase 11 (US7): 實作 UI 隱藏/顯示切換與專屬儲存按鈕互動。
+12. Phase 12 (US8): 實作起始日期 (Start Date) 欄位與必填驗證邏輯。
 
-## Technical Details (US4)
-- **Container Strategy**: 使用 Flexbox 佈局，Header 與 Footer 固定，中間區塊 `flex: 1; overflow-y: auto;`。
+## Technical Details (US4, US7, US8)
+- **Container Strategy**: 使用 Flexbox 佈局，Header 與 Footer 固定，中間區塊 `flex: 1; overflow: auto;` (支援垂直與橫向滾動)。
+- **UI Toggle (US7)**: 使用 CSS `display: none` 預設隱藏 `.input-section`。在 `script.js` 中透過 `classList.toggle` 實作顯示切換。新增 `#save-todo-btn` 作為主要的提交入口。
+- **Date Validation (US8)**: 資料庫新增 `start_date` 欄位。前端在提交前檢查 `#start-date-input` 是否為空，若為空則中斷執行並彈出提示。
 - **Height Calculation**: `.main-content-scroller` 的高度應為父容器剩餘空間，確保其不會超出 `.container.glass`。
+- **Scrollbar Management**: 將原先位於 `.kanban-container` 的橫向滾動邏輯移轉至 `.main-content-scroller`，以統一捲動行為。
+
 
 ## Complexity Tracking
 

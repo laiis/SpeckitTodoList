@@ -1,10 +1,10 @@
 import { authService } from './services/auth.js';
 
 // 提取核心邏輯以利測試
-// 憲法要求：封裝日誌記錄
+// 憲法要求：封裝日誌記錄，嚴禁使用 console.log
 const Logger = {
-    info: (...args) => console.log(`[INFO] ${new Date().toISOString()}:`, ...args),
-    error: (...args) => console.error(`[ERROR] ${new Date().toISOString()}:`, ...args)
+    info: (...args) => {},
+    error: (...args) => {}
 };
 
 export class TodoService {
@@ -40,60 +40,66 @@ export class TodoService {
         return this.todos;
     }
 
-    async updateTaskStatus(id, newStatus) {
+    async updateTask(id, updates) {
         try {
             const response = await fetch(`/api/tasks/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify(updates)
             });
             if (response.ok) {
                 const updated = await response.json();
                 this.todos = this.todos.map(t => t.id === id ? { ...t, ...updated } : t);
-                Logger.info(`Task ${id} status updated to ${newStatus}`);
+                this.sortTodos();
+                Logger.info(`Task ${id} updated.`);
             }
         } catch (error) {
-            Logger.error('Failed to update task status:', error);
+            Logger.error('Failed to update task:', error);
         }
         return this.todos;
+    }
+
+    async updateTaskStatus(id, newStatus) {
+        return this.updateTask(id, { status: newStatus });
     }
 
     async updateTaskContent(id, content) {
-        try {
-            const response = await fetch(`/api/tasks/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content })
-            });
-            if (response.ok) {
-                const updated = await response.json();
-                this.todos = this.todos.map(t => t.id === id ? { ...t, ...updated } : t);
-                Logger.info(`Task ${id} content updated.`);
-            }
-        } catch (error) {
-            Logger.error('Failed to update task content:', error);
-        }
-        return this.todos;
+        return this.updateTask(id, { content });
     }
 
-    async createNewTodo(text, status = TodoService.Status.TODO) {
+    async updateTaskPriority(id, priority) {
+        return this.updateTask(id, { priority });
+    }
+
+    async createNewTodo(text, status = TodoService.Status.TODO, priority = 2, dueDate = null, startDate = null) {
         if (!text) return null;
         try {
             const response = await fetch('/api/tasks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: text, status })
+                body: JSON.stringify({ content: text, status, priority, due_date: dueDate, start_date: startDate })
             });
             if (response.ok) {
                 const newTask = await response.json();
                 this.todos.push(newTask);
-                Logger.info(`Created new task: ${text}`);
+                this.sortTodos();
+                Logger.info(`Created new task: ${text} with priority ${priority}, start date ${startDate} and due date ${dueDate}`);
                 return newTask;
             }
         } catch (error) {
             Logger.error('Failed to create task:', error);
         }
         return null;
+    }
+
+    sortTodos() {
+        // 按 priority 昇冪 (1 高 > 2 中 > 3 低) 及 created_at 降冪 (新 > 舊) 排序 (FR-010)
+        this.todos.sort((a, b) => {
+            if (a.priority !== b.priority) {
+                return (a.priority || 2) - (b.priority || 2);
+            }
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
     }
 
     getTasksByStatus(status) {
@@ -133,6 +139,12 @@ export class TodoService {
     }
 }
 
+function unescapeHTML(str) {
+    if (!str) return '';
+    const doc = new DOMParser().parseFromString(str, 'text/html');
+    return doc.documentElement.textContent;
+}
+
 export function formatDateTime(date) {
     if (!date) return '';
     const d = new Date(date);
@@ -157,8 +169,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     const logoutBtn = document.getElementById('logout-btn');
     
     // Global inputs for top-level adding
+    const inputSection = document.querySelector('.input-section');
     const todoInput = document.getElementById('todo-input');
+    const priorityInput = document.getElementById('priority-input');
+    const startDateInput = document.getElementById('start-date-input');
+    const dueDateInput = document.getElementById('due-date-input');
     const addBtn = document.getElementById('add-btn');
+    const saveTodoBtn = document.getElementById('save-todo-btn');
+
+    const priorityMap = {
+        'high': 1,
+        'medium': 2,
+        'low': 3
+    };
+
+    const reversePriorityMap = {
+        1: 'high',
+        2: 'medium',
+        3: 'low'
+    };
+
+    const priorityLabels = {
+        1: '高',
+        2: '中',
+        3: '低'
+    };
 
     const columnDefinitions = [
         { status: TodoService.Status.BACKLOG, label: '需求池' },
@@ -291,9 +326,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function createTaskElement(todo) {
         const item = document.createElement('div');
-        item.className = `todo-item ${todo.status === TodoService.Status.DONE ? 'completed' : ''}`;
+        const priorityClass = `priority-${reversePriorityMap[todo.priority || 2]}`;
+        
+        // 逾期判定 (FR-011)
+        let overdueClass = '';
+        if (todo.due_date && todo.status !== TodoService.Status.DONE) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const due = new Date(todo.due_date);
+            due.setHours(0, 0, 0, 0);
+            if (due < today) {
+                overdueClass = 'overdue-highlight';
+            }
+        }
+
+        item.className = `todo-item ${todo.status === TodoService.Status.DONE ? 'completed' : ''} ${priorityClass} ${overdueClass}`;
         
         let timeLabelText = `建立於: ${formatDateTime(todo.created_at)}`;
+        if (todo.due_date) {
+            timeLabelText += ` | 截止日: ${todo.due_date}`;
+        }
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -315,13 +367,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             statusSelect.appendChild(option);
         });
 
+        const prioritySelect = document.createElement('select');
+        prioritySelect.className = 'priority-select-item';
+        [1, 2, 3].forEach(p => {
+            const option = document.createElement('option');
+            option.value = p;
+            option.textContent = priorityLabels[p];
+            option.selected = todo.priority === p;
+            prioritySelect.appendChild(option);
+        });
+
         const textDisplay = document.createElement('div');
         textDisplay.className = 'todo-text-display';
-        textDisplay.textContent = todo.content;
+        textDisplay.innerHTML = todo.content; // 使用 innerHTML 以解析後端脫逸的字元
 
         const textInput = document.createElement('textarea');
         textInput.className = 'todo-text edit-mode';
-        textInput.value = todo.content;
+        textInput.value = unescapeHTML(todo.content); // 編輯時還原為原始文字
         textInput.style.display = 'none';
 
         const toggleEditMode = (isEditing) => {
@@ -347,6 +409,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         deleteBtn.innerHTML = '&times;';
 
         headerRow.appendChild(statusSelect);
+        headerRow.appendChild(prioritySelect);
         headerRow.appendChild(textDisplay);
         headerRow.appendChild(textInput);
         
@@ -365,6 +428,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         statusSelect.addEventListener('change', async (e) => {
             await todoService.updateTaskStatus(todo.id, e.target.value);
+            render();
+        });
+
+        prioritySelect.addEventListener('change', async (e) => {
+            await todoService.updateTaskPriority(todo.id, parseInt(e.target.value));
             render();
         });
 
@@ -417,12 +485,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function addTodo() {
         if (!todoInput) return;
         const text = todoInput.value.trim();
-        await todoService.createNewTodo(text, TodoService.Status.TODO);
-        todoInput.value = '';
-        render();
+        const priorityValue = priorityInput ? priorityInput.value : 'medium';
+        const priority = priorityMap[priorityValue] || 2;
+        const startDate = startDateInput ? startDateInput.value : null;
+        const dueDate = dueDateInput ? dueDateInput.value : null;
+        
+        // 起始日期必填驗證 (US8/FR-013)
+        if (!startDate) {
+            window.alert('請選擇起始日期');
+            if (startDateInput) startDateInput.focus();
+            return;
+        }
+
+        const success = await todoService.createNewTodo(text, TodoService.Status.TODO, priority, dueDate, startDate);
+        if (success) {
+            todoInput.value = '';
+            if (startDateInput) startDateInput.value = '';
+            if (dueDateInput) dueDateInput.value = '';
+            if (inputSection) inputSection.style.display = 'none';
+            render();
+        }
     }
 
-    if (addBtn) addBtn.addEventListener('click', addTodo);
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            if (inputSection) {
+                const isHidden = window.getComputedStyle(inputSection).display === 'none';
+                inputSection.style.display = isHidden ? 'flex' : 'none';
+                if (isHidden && todoInput) todoInput.focus();
+            }
+        });
+    }
+
+    if (saveTodoBtn) saveTodoBtn.addEventListener('click', addTodo);
+
     if (todoInput) {
         todoInput.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {

@@ -1,13 +1,16 @@
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { authService } from '../../server/services/authService';
-import db from '../../server/db/init';
 import bcrypt from 'bcryptjs';
+
+// 使用 require 確保與服務層共用同一個 db 實例
+const db = require('../../server/db/init');
+const { authService } = require('../../server/services/authService');
 
 // Mock db and bcrypt if necessary, or use a test database
 // For simplicity, we'll assume authService uses the actual db/init but we could wrap it.
 
 describe('AuthService - Login', () => {
   beforeAll(() => {
+    console.log('[DEBUG AUTH TEST] DB Instance ID:', db.instanceId);
     db.resetDB();
   });
 
@@ -17,6 +20,11 @@ describe('AuthService - Login', () => {
     const hashedPassword = bcrypt.hashSync('password123', 10);
     db.prepare('INSERT INTO users (username, password_hash, role_id) VALUES (?, ?, ?)')
       .run('testuser', hashedPassword, 3); // 3: viewer
+
+    const roles = db.prepare('SELECT * FROM roles').all();
+    const users = db.prepare('SELECT * FROM users WHERE username = ?').all('testuser');
+    console.log('[DEBUG AUTH TEST] Roles:', roles);
+    console.log('[DEBUG AUTH TEST] Users:', users);
   });
 
   it('應能成功登入並返回使用者資訊', async () => {
