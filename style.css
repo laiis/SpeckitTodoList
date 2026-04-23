@@ -851,10 +851,12 @@ body.dark-mode .status-running .status-select {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap; /* 空間不足時允許換行 */
 }
 
 .edit-date-inputs input {
-    flex: 1;
+    flex: 1 1 120px; /* 允許縮放，但設定基礎寬度 */
+    min-width: 0;   /* 允許縮小到小於內容寬度 */
     padding: 4px 8px;
     border-radius: 4px;
     border: 1px solid var(--glass-border);
