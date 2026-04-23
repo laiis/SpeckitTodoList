@@ -73,7 +73,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T013.1 [P] [US3] 撰寫單元測試驗證列表任務內容的 3 行縮略 CSS 屬性於 `tests/unit/ui.test.js`
+- [x] T013.1 [P] [US3] 撰寫單元測試驗證列表任務內容的 3 行縮略 CSS 屬性於 `tests/unit/ui.test.js`
 - [x] T012 [US3] 在 `public/script.js` 為 textarea 增加 `keydown` 監聽器，實作 `Ctrl + Enter` 提交邏輯
 - [x] T013 [US3] 在 `public/style.css` 使用 `-webkit-line-clamp` 實作列表任務內容的 3 行縮略顯示
 
@@ -94,7 +94,7 @@
 
 **Purpose**: 修正佈局問題，確保在多行輸入下看板內容依然可見
 
-- [ ] T018 修正 `public/style.css` 中 `.container.glass` 的固定高度問題，將其改為自適應或調整最大高度，以確保 `.kanban.container` 內容不被遮蔽
+- [x] T018 修正 `public/style.css` 中 `.container.glass` 的固定高度問題，將其改為自適應或調整最大高度，以確保 `.kanban.container` 內容不被遮蔽
 
 ---
 

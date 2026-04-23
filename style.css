@@ -121,12 +121,14 @@ body {
 .container {
     width: 95%;
     max-width: 1600px; /* 支援寬螢幕看板 */
-    max-height: 90vh; /* 限制最大高度以啟動捲動條 */
+    min-height: 80vh; /* 確保至少有足夠高度顯示看板與多行輸入 */
+    max-height: 95vh; /* 增加最大高度以利用更多螢幕空間 */
     padding: 2rem;
     border-radius: 24px;
     display: flex;
     flex-direction: column;
     overflow-y: auto; /* 啟用垂直捲動條 */
+    margin: 2vh auto;
 }
 
 /* T029: 容器自定義垂直捲動條 */

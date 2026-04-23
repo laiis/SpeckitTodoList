@@ -81,14 +81,10 @@ function seedData() {
   roles.forEach(role => insertRole.run(role.id, role.name));
 
   // 植入預設 Admin
-  const adminUser = db.prepare('SELECT * FROM users WHERE username = ?').get('admin');
-  if (!adminUser) {
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(config.admin.password, salt);
-    db.prepare('INSERT INTO users (username, password_hash, role_id) VALUES (?, ?, ?)')
-      .run('admin', hash, 1);
-    logger.info('Default admin account created (admin/admin).');
-  }
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(config.admin.password, salt);
+  db.prepare('INSERT OR IGNORE INTO users (username, password_hash, role_id) VALUES (?, ?, ?)')
+    .run('admin', hash, 1);
 }
 
 /**
@@ -108,7 +104,11 @@ try {
   logger.info('Database initialized successfully.');
 } catch (err) {
   logger.error('Database initialization failed: ' + err.message);
-  process.exit(1);
+  if (process.env.NODE_ENV !== 'test') {
+    process.exit(1);
+  } else {
+    throw err;
+  }
 }
 
 db.resetDB = resetDB;
