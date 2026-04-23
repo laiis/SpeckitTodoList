@@ -1,37 +1,98 @@
 # Tasks: UI/UX 優化 (UI/UX Refinements)
 
-## Phase 1: Setup & Foundational
-- [ ] T001 建立 `specs/008-ui-ux-refinements/research.md` 並記錄雙捲動條實作方案
+## Phase 1: Setup (Shared Infrastructure)
+
+- [ ] T001 更新 `GEMINI.md` 以連結至新的實作計畫 `specs/008-ui-ux-refinements/plan.md`
 - [ ] T002 建立測試檔案 `tests/unit/ui-refinements.test.js` 並設置基礎測試環境
-- [ ] T003 [P] 在 `tests/unit/ui-refinements.test.js` 增加對 `TodoService.updateTask` 更新日期的驗證測試
 
-## Phase 2: [US1] 看板雙橫向捲動條 (Kanban Dual Scrollbars)
-- [ ] T004 [US1] 在 `index.html` 的 `.kanban-container` 上方新增 `.kanban-scroll-top` 結構
-- [ ] T005 [P] [US1] 在 `style.css` 實作 `.kanban-scroll-top` 的同步捲動樣式 (overflow-x, dummy height)
-- [ ] T006 [US1] 在 `script.js` 實作頂部捲動條與 `.kanban-container` 的即時捲動位置同步邏輯
-- [ ] T007 [US1] 在 `script.js` 實作視窗調整大小時同步頂部捲動條寬度的邏輯
-- [ ] T008 [US1] 在 `tests/unit/ui-refinements.test.js` 驗證捲動位置同步函數
+---
 
-## Phase 3: [US2] 任務日期編輯 (Edit Task Dates in Card)
-- [ ] T009 [US2] 在 `script.js` 的 `renderTodoItem` 函數中，為編輯模式新增起始與截止日期的 `<input type="date">`
-- [ ] T010 [P] [US2] 在 `style.css` 增加任務卡片內日期輸入框的樣式，確保與現有 UI 協調
-- [ ] T011 [US2] 在 `script.js` 實作日期輸入框的 `change` 事件處理，調用 `todoService.updateTask` 儲存變更
-- [ ] T012 [US2] 更新 `script.js` 中的 `timeLabel` 渲染邏輯，確保起始日期也能顯示在卡片上
-- [ ] T013 [US2] 在 `tests/unit/ui-refinements.test.js` 驗證卡片日期更新後的 UI 渲染
+## Phase 2: Foundational (Blocking Prerequisites)
 
-## Phase 4: [US3] 篩選按鈕互動優化 (Filter Button Interaction)
-- [ ] T014 [US3] 檢查並移除 `script.js` 中篩選按鈕點擊事件內任何可能導致自動聚焦或捲動的代碼 (如 `.focus()`)
-- [ ] T015 [P] [US3] 在 `style.css` 檢查 `.filter-btn:focus` 樣式，確保其不帶有強制置中的 outline 或 layout 偏移
-- [ ] T016 [US3] 在 `tests/unit/ui-refinements.test.js` 模擬篩選按鈕點擊並驗證頁面捲動位置是否保持不變
+- [ ] T003 [P] 在 `style.css` 定義共通的 `.invalid` 樣式 (red border) 以供日期驗證使用
+- [ ] T004 在 `script.js` 封裝 `requestAnimationFrame` 基礎同步函數以確保 60fps 效能
 
-## Phase 5: Polish & Compliance
-- [ ] T017 執行專案全量單元測試 `npm test` 並修復潛在回歸問題
-- [ ] T018 最終視覺檢查，確保各組件在 Dark Mode 下的顯示正確性
-- [ ] T019 [Compliance] 檢查並移除代碼中所有殘留的 `console.log`，確保符合專案憲法 V 條款
+---
 
-## Dependencies
-US1, US2, US3 均可獨立實作與測試。
+## Phase 3: User Story 1 - 看板雙橫向捲動條 (Priority: P1) 🎯 MVP
+
+**Goal**: 在看板頂部實作與內容同步的橫向捲動條。
+
+**Independent Test**: 當手動捲動頂部捲動條時，`.kanban-container` 應同步移動；當看板內容寬度改變時，頂部捲動條應自動調整。
+
+### Tests for User Story 1
+
+- [ ] T005 [P] [US1] 在 `tests/unit/ui-refinements.test.js` 撰寫測試驗證捲動同步函數的偏移量正確性
+- [ ] T006 [P] [US1] 在 `tests/unit/ui-refinements.test.js` 撰寫測試驗證 `ResizeObserver` 能正確觸發寬度更新
+
+### Implementation for User Story 1
+
+- [ ] T007 [US1] 在 `index.html` 的 `.kanban-container` 上方新增 `.kanban-scroll-top` 與其虛擬內容結構
+- [ ] T008 [P] [US1] 在 `style.css` 設定 `.kanban-scroll-top` 樣式 (overflow-x: auto, height: 15px)
+- [ ] T009 [US1] 在 `script.js` 初始化 `ResizeObserver` 以監聽 `.kanban-container` 的 `scrollWidth`
+- [ ] T010 [US1] 在 `script.js` 實作雙向捲動監聽，並使用 `requestAnimationFrame` 限制同步頻率 (延遲 < 16ms)
+
+---
+
+## Phase 4: User Story 2 - 任務日期編輯 (Priority: P1)
+
+**Goal**: 在任務卡片內直接編輯起始與截止日期，並具備邏輯驗證。
+
+**Independent Test**: 編輯卡片日期後儲存，資料庫與 UI 標籤應即時更新；若起始日期晚於截止日期，則無法儲存。
+
+### Tests for User Story 2
+
+- [ ] T011 [P] [US2] 在 `tests/unit/ui-refinements.test.js` 撰寫日期邏輯驗證函數的測試案例 (包含合法、非法與空值)
+- [ ] T012 [P] [US2] 在 `tests/unit/ui-refinements.test.js` 撰寫 UI 測試，驗證非法日期時輸入框是否顯示紅框
+
+### Implementation for User Story 2
+
+- [ ] T013 [US2] 修改 `script.js` 中的 `renderTodoItem` 函數，在編輯模式下渲染兩個 `<input type="date">`
+- [ ] T014 [P] [US2] 在 `style.css` 調整卡片內日期輸入框的間距與對齊方式
+- [ ] T015 [US2] 在 `script.js` 的儲存邏輯中加入 `startDate <= dueDate` 驗證，失敗時套用 `.invalid` 樣式
+- [ ] T016 [US2] 修改 `script.js` 的資料發送邏輯，支援將清空的日期欄位傳送為 `null`
+- [ ] T017 [US2] 更新 `script.js` 中的 `timeLabel` 顯示邏輯，確保儲存後即時反映新的日期區間
+
+---
+
+## Phase 5: User Story 3 - 篩選按鈕互動優化 (Priority: P2)
+
+**Goal**: 點擊篩選按鈕時頁面不產生非預期的位移。
+
+**Independent Test**: 在捲動頁面後點擊「待完成」按鈕，視窗垂直位置應保持不變。
+
+### Implementation for User Story 3
+
+- [ ] T018 [US3] 在 `script.js` 的篩選按鈕點擊事件處理程序中加入 `event.preventDefault()`
+- [ ] T019 [US3] 移除 `script.js` 中所有與篩選操作相關的 `.focus()` 或 `.scrollIntoView()` 調用
+- [ ] T020 [P] [US3] 在 `style.css` 檢查並修復可能導致 Layout Shift 的按鈕狀態樣式
+
+---
+
+## Phase 6: Polish & Cross-Cutting Concerns
+
+- [ ] T021 執行全量測試 `npm test` 確保無功能回歸
+- [ ] T022 [P] 檢查並移除所有代碼中的 `console.log`，改用專案 Logger (憲法條款 V)
+- [ ] T023 執行 `specs/008-ui-ux-refinements/quickstart.md` 中的所有驗證場景
+
+---
+
+## Dependencies & Execution Order
+
+- **Phase 1 & 2** 是所有後續開發的基礎。
+- **US1 (Phase 3)** 與 **US2 (Phase 4)** 優先順序最高 (P1)，可併行開發。
+- **US3 (Phase 5)** 優先度較低，在 P1 任務完成後執行。
+
+### Parallel Opportunities
+
+- T003 與 T004 可併行。
+- US1 (T005, T006, T008) 與 US2 (T011, T012, T014) 可由不同開發者同時進行。
+- 不同 User Story 內的測試 (T005, T011) 可同步撰寫。
+
+---
 
 ## Implementation Strategy
-優先實作 US1 與 US2，因為其涉及較多結構性變更。US3 為行為微調，可放在最後處理。
-全程遵循 TDD 模式，先在測試檔定義行為再進行實作。
+
+1. **MVP (US1)**: 先完成看板頂部捲動條，這是使用者最有感的體驗改進。
+2. **Data Integrity (US2)**: 實作具備驗證機制的日期編輯。
+3. **Refinement (US3)**: 最後修復微小的互動位移問題。
