@@ -324,12 +324,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         textInput.value = todo.content;
         textInput.style.display = 'none';
 
-        textDisplay.addEventListener('click', () => {
-            textDisplay.style.display = 'none';
-            textInput.style.display = 'block';
-            textInput.rows = 10;
-            textInput.focus();
-        });
+        const toggleEditMode = (isEditing) => {
+            if (isEditing) {
+                textDisplay.style.display = 'none';
+                textInput.style.display = 'block';
+                textInput.rows = 10;
+                textInput.focus();
+            } else {
+                textInput.style.display = 'none';
+                textDisplay.style.display = '';
+            }
+        };
+
+        textDisplay.addEventListener('click', () => toggleEditMode(true));
 
         const timeLabel = document.createElement('span');
         timeLabel.className = 'todo-time';
@@ -362,8 +369,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         textInput.addEventListener('blur', async () => {
-            textInput.style.display = 'none';
-            textDisplay.style.display = '';
+            toggleEditMode(false);
             if (textInput.value.trim() !== todo.content) {
                 await todoService.updateTaskContent(todo.id, textInput.value.trim());
                 render();
