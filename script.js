@@ -379,8 +379,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         item.className = `todo-item ${todo.status === TodoService.Status.DONE ? 'completed' : ''} ${priorityClass} ${overdueClass}`;
         
         let timeLabelText = `建立於: ${formatDateTime(todo.created_at)}`;
-        if (todo.due_date) {
-            timeLabelText += ` | 截止日: ${todo.due_date}`;
+        if (todo.start_date || todo.due_date) {
+            timeLabelText += ' | ';
+            if (todo.start_date) timeLabelText += `起始: ${todo.start_date}`;
+            if (todo.start_date && todo.due_date) timeLabelText += ' 至 ';
+            if (todo.due_date) timeLabelText += `截止: ${todo.due_date}`;
         }
 
         const checkbox = document.createElement('input');

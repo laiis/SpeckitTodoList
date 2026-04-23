@@ -34,6 +34,9 @@
     - **問題**: `textInput` 的 `blur` 事件會搶先在點擊日期輸入框時關閉編輯模式。
     - **修復**: 優化 `blur` 邏輯，加入 200ms 延遲並透過 `document.activeElement` 判定焦點是否仍在任務項目的編輯區域內，確保使用者能正常選擇日期。
     - **穩定性**: 增加點擊冒泡阻止 (stopPropagation) 與連動式 `blur` 儲存機制。
+- **任務卡片日期不顯示問題**:
+    - **問題**: `createTaskElement` 的顯示邏輯遺漏了 `start_date`，且標籤格式未涵蓋起始時間。
+    - **修復**: 更新 `timeLabelText` 產生邏輯，將起始日期與截止日期同時納入顯示標籤。
 
 ## 下一步行動 (Next Actions)
 - [ ] 視需求將分支合併至 main 軌道。
