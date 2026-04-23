@@ -19,8 +19,8 @@
 
 **Purpose**: 專案初始化與環境檢查
 
-- [ ] T001 驗證當前分支 `007-input-type-text` 與環境變數設定
-- [ ] T002 檢視 `public/index.html` 與 `public/script.js` 中既有的待辦事項輸入邏輯
+- [x] T001 驗證當前分支 `007-input-type-text` 與環境變數設定
+- [x] T002 檢視 `public/index.html` 與 `public/script.js` 中既有的待辦事項輸入邏輯
 
 ---
 
@@ -28,7 +28,7 @@
 
 **Purpose**: 實作前必須完成的基礎架構與測試準備
 
-- [ ] T003 建立測試目錄與基礎配置 `tests/unit/ui.test.js`
+- [x] T003 建立測試目錄與基礎配置 `tests/unit/ui.test.js`
 
 ---
 
@@ -40,14 +40,14 @@
 
 ### Tests for User Story 1
 
-- [ ] T004 [P] [US1] 撰寫單元測試驗證 textarea 換行符保留邏輯於 `tests/unit/taskService.test.js`
-- [ ] T005 [P] [US1] 撰寫整合測試驗證多行任務的儲存與讀取於 `tests/integration/todo_flow.test.mjs`
+- [x] T004 [P] [US1] 撰寫單元測試驗證 textarea 換行符保留邏輯於 `tests/unit/taskService.test.js`
+- [x] T005 [P] [US1] 撰寫整合測試驗證多行任務的儲存與讀取於 `tests/integration/todo_flow.test.mjs`
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] 修改 `public/index.html` 將 `.todo-text` 從 `<input type="text">` 變更為 `<textarea>`
-- [ ] T007 [US1] 更新 `public/script.js` 以從 `textarea.value` 獲取內容並處理 DOM 元素選擇
-- [ ] T008 [US1] 更新 `public/style.css` 加上 `white-space: pre-wrap;` 確保顯示時保留換行
+- [x] T006 [US1] 修改 `public/index.html` 將 `.todo-text` 從 `<input type="text">` 變更為 `<textarea>`
+- [x] T007 [US1] 更新 `public/script.js` 以從 `textarea.value` 獲取內容並處理 DOM 元素選擇
+- [x] T008 [US1] 更新 `public/style.css` 加上 `white-space: pre-wrap;` 確保顯示時保留換行
 
 **Checkpoint**: 支援多行輸入與顯示，MVP 核心功能完成。
 
@@ -61,9 +61,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] 在 `public/index.html` 為 textarea 增加 `rows="10"` 屬性
-- [ ] T010 [US2] 在 `public/style.css` 設定 textarea 為固定高度並禁用 resize 調整大小
-- [ ] T011 [US2] 在 `public/style.css` 確保超過內容高度時出現垂直滾動條
+- [x] T009 [US2] 在 `public/index.html` 為 textarea 增加 `rows="10"` 屬性
+- [x] T010 [US2] 在 `public/style.css` 設定 textarea 為固定高度並禁用 resize 調整大小
+- [x] T011 [US2] 在 `public/style.css` 確保超過內容高度時出現垂直滾動條
 
 **Checkpoint**: 輸入框視覺佈局穩定，長文本管理優化。
 
@@ -77,8 +77,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T012 [US3] 在 `public/script.js` 為 textarea 增加 `keydown` 監聽器，實作 `Ctrl + Enter` 提交邏輯
-- [ ] T013 [US3] 在 `public/style.css` 使用 `-webkit-line-clamp` 實作列表任務內容的 3 行縮略顯示
+- [x] T012 [US3] 在 `public/script.js` 為 textarea 增加 `keydown` 監聽器，實作 `Ctrl + Enter` 提交邏輯
+- [x] T013 [US3] 在 `public/style.css` 使用 `-webkit-line-clamp` 實作列表任務內容的 3 行縮略顯示
 
 ---
 
@@ -86,10 +86,10 @@
 
 **Purpose**: 最終驗證與清理
 
-- [ ] T014 執行 `npm test` 確保 80% 覆蓋率與無回歸錯誤
-- [ ] T015 執行 `quickstart.md` 中的所有驗證步驟
-- [ ] T016 更新 `README.md` (如有必要) 關於快捷鍵的說明
-- [ ] T017 [P] 使用 Logger 記錄多行任務建立事件於 `server/services/taskService.js`
+- [x] T014 執行 `npm test` 確保 80% 覆蓋率與無回歸錯誤
+- [x] T015 執行 `quickstart.md` 中的所有驗證步驟
+- [x] T016 更新 `README.md` (如有必要) 關於快捷鍵的說明
+- [x] T017 [P] 使用 Logger 記錄多行任務建立事件於 `server/services/taskService.js`
 
 ---
 

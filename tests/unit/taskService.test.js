@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
-import taskService from '../../server/services/taskService';
-import db from '../../server/db/init';
+
+// 使用記憶體資料庫以避免測試衝突
+process.env.DB_PATH = ':memory:';
+
+// 使用 require 確保在設定環境變數後才載入資料庫
+const db = require('../../server/db/init');
+const taskService = require('../../server/services/taskService');
 
 describe('TaskService - Data Isolation', () => {
   const USER_A = 100;
