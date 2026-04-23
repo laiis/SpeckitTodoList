@@ -498,36 +498,60 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         textInput.addEventListener('blur', async () => {
-            const newContent = textInput.value.trim();
-            const newStart = editStartInput.value || null;
-            const newDue = editDueInput.value || null;
+            // 使用 setTimeout 確保能抓取到新的 focus 元素 (document.activeElement)
+            setTimeout(async () => {
+                const activeEl = document.activeElement;
+                // 如果焦點移到了日期輸入框，則不關閉編輯模式
+                if (activeEl === editStartInput || activeEl === editDueInput) {
+                    return;
+                }
 
-            // T015: 調用 taskService.validateDateRange
-            if (!taskService.validateDateRange(newStart, newDue)) {
-                editStartInput.classList.add('invalid');
-                editDueInput.classList.add('invalid');
-                errorMsg.style.display = 'block';
-                // 保持編輯模式
-                textInput.focus();
-                return;
-            }
+                const newContent = textInput.value.trim();
+                const newStart = editStartInput.value || null;
+                const newDue = editDueInput.value || null;
 
-            toggleEditMode(false);
-            
-            const hasContentChanged = newContent !== todo.content;
-            const hasStartChanged = (newStart || '') !== (todo.start_date || '');
-            const hasDueChanged = (newDue || '') !== (todo.due_date || '');
+                // T015: 調用 taskService.validateDateRange
+                if (!taskService.validateDateRange(newStart, newDue)) {
+                    editStartInput.classList.add('invalid');
+                    editDueInput.classList.add('invalid');
+                    errorMsg.style.display = 'block';
+                    // 保持編輯模式
+                    textInput.focus();
+                    return;
+                }
 
-            if (hasContentChanged || hasStartChanged || hasDueChanged) {
-                // T016: 支援傳送 null (透過 updateTask 統一處理)
-                await todoService.updateTask(todo.id, { 
-                    content: newContent,
-                    start_date: newStart,
-                    due_date: newDue
-                });
-                render();
-            }
+                toggleEditMode(false);
+                
+                const hasContentChanged = newContent !== todo.content;
+                const hasStartChanged = (newStart || '') !== (todo.start_date || '');
+                const hasDueChanged = (newDue || '') !== (todo.due_date || '');
+
+                if (hasContentChanged || hasStartChanged || hasDueChanged) {
+                    // T016: 支援傳送 null (透過 updateTask 統一處理)
+                    await todoService.updateTask(todo.id, { 
+                        content: newContent,
+                        start_date: newStart,
+                        due_date: newDue
+                    });
+                    render();
+                }
+            }, 200);
         });
+
+        // 防止日期輸入框的點擊事件冒泡，並處理其失去焦點時的儲存邏輯
+        const handleInputBlur = () => {
+            setTimeout(() => {
+                const activeEl = document.activeElement;
+                // 如果焦點離開了所有編輯控制項，則觸發 textInput 的 blur 邏輯進行儲存
+                if (activeEl !== textInput && activeEl !== editStartInput && activeEl !== editDueInput) {
+                    textInput.blur();
+                }
+            }, 200);
+        };
+
+        editStartInput.addEventListener('blur', handleInputBlur);
+        editDueInput.addEventListener('blur', handleInputBlur);
+        dateEditRow.addEventListener('click', (e) => e.stopPropagation());
 
         textInput.addEventListener('keydown', async (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {

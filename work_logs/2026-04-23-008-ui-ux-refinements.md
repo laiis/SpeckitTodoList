@@ -29,6 +29,12 @@
 - **提交記錄**: `feat(ui-ux): implement kanban top scrollbar and date validation`
 - **狀態**: 已完成所有實作任務並提交至分支 `008-ui-ux-refinements`。
 
+### 4. 錯誤修復 (Bug Fixes)
+- **日期編輯區無法操作問題**:
+    - **問題**: `textInput` 的 `blur` 事件會搶先在點擊日期輸入框時關閉編輯模式。
+    - **修復**: 優化 `blur` 邏輯，加入 200ms 延遲並透過 `document.activeElement` 判定焦點是否仍在任務項目的編輯區域內，確保使用者能正常選擇日期。
+    - **穩定性**: 增加點擊冒泡阻止 (stopPropagation) 與連動式 `blur` 儲存機制。
+
 ## 下一步行動 (Next Actions)
 - [ ] 視需求將分支合併至 main 軌道。
 - [ ] 進行下一階段的功能開發或效能調優。
