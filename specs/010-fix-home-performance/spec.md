@@ -12,6 +12,9 @@
 - Q: 簡化視覺效果的觸發機制為何？ → A: 手動切換。在介面提供「性能模式」開關，由使用者決定。
 - Q: 性能模式下的視覺降級程度為何？ → A: 視覺大幅降級。移除 blur (backdrop-filter) 並將背景改為不透明或高透明純色。
 - Q: 任務卡片的事件處理機制為何？ → A: 事件委派。在父容器層級監聽事件，降低記憶體開銷。
+- Q: 「性能模式」的狀態是否應持久化？ → A: 使用 LocalStorage 持久化。記錄使用者偏好，下次開啟頁面自動套用。
+- Q: 如何監控與驗證優化後的性能表現？ → A: 透過 Logger 記錄性能指標。記錄 TBT、Long Tasks 等關鍵數據至日誌中，以供後續分析。
+- Q: 是否應主動引導低階硬體使用者開啟性能模式？ → A: 首次啟動提示。若偵測到硬體規格較低，主動彈窗提示使用者開啟性能模式。
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -61,6 +64,9 @@ As a user, I want common interactions (adding, editing, or deleting tasks) to be
 - **FR-004**: System MUST implement Event Delegation for task card interactions (click, change, delete) to minimize the number of active event listeners and reduce memory pressure.
 - **FR-005**: System MUST ensure that memory consumption remains stable and optimize the `DOMParser` usage to avoid repetitive parsing during render loops.
 - **FR-006**: System MUST utilize asynchronous patterns for heavy processing and ensure a smooth UI experience without long tasks (>50ms).
+- **FR-007**: System MUST persist the "Performance Mode" state in `localStorage` so that the user's preference is maintained across page reloads.
+- **FR-008**: System MUST utilize the unified `Logger` object to record key performance metrics (e.g., Load Time, TBT, Long Tasks) for observability and validation on target hardware.
+- **FR-009**: System SHOULD detect low-end hardware environments (e.g., using `navigator.deviceMemory`) on first load and prompt the user to enable "Performance Mode" if appropriate.
 
 ### Key Entities *(include if feature involves data)*
 
