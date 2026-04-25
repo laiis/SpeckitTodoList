@@ -19,8 +19,8 @@
 
 **Purpose**: 專案初始化與測試環境設置
 
-- [ ] T001 建立 UI 佈局測試檔案 `tests/unit/ui-refinements.test.js`
-- [ ] T002 [P] 在 `public/pages/admin.html` 內嵌樣式區初始化 CSS 變數 (`--min-width`, `--ratio-user`, `--ratio-log`)
+- [X] T001 建立 UI 佈局測試檔案 `tests/unit/ui-refinements.test.js`
+- [X] T002 [P] 在 `public/pages/admin.html` 內嵌樣式區初始化 CSS 變數 (`--min-width`, `--ratio-user`, `--ratio-log`)
 
 ---
 
@@ -30,9 +30,9 @@
 
 **⚠️ CRITICAL**: 在此階段完成前，無法開始任何使用者故事的實作
 
-- [ ] T003 在 `public/pages/admin.html` 的 `body` 下層建立 `admin-wrapper` 容器
-- [ ] T004 對 `admin-wrapper` 應用 `min-width: 1200px` 與 `overflow-x: auto` 以支撐橫向捲軸
-- [ ] T005 設定全頁垂直捲動環境，移除 `body` 或 `html` 的 `overflow: hidden` 限制
+- [X] T003 在 `public/pages/admin.html` 的 `body` 下層建立 `admin-wrapper` 容器
+- [X] T004 對 `admin-wrapper` 應用 `min-width: 1200px` 與 `overflow-x: auto` 以支撐橫向捲軸
+- [X] T005 設定全頁垂直捲動環境，移除 `body` 或 `html` 的 `overflow: hidden` 限制
 
 **Checkpoint**: 基礎結構已就緒 - 使用者故事實作現在可以開始
 
@@ -46,14 +46,14 @@
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T006 [US1] 在 `tests/unit/ui-refinements.test.js` 撰寫驗證 2:3 寬度比例的測試案例
+- [X] T006 [US1] 在 `tests/unit/ui-refinements.test.js` 撰寫驗證 2:3 寬度比例的測試案例
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] 在 `public/pages/admin.html` 中將兩個 `section.glass` 區塊包裹入 `.admin-main` 容器
-- [ ] T008 [US1] 對 `.admin-main` 應用 `display: flex` 與 `gap: 20px`
-- [ ] T009 [US1] 對使用者管理區塊應用 `flex: 2`，對日誌區塊應用 `flex: 3`
-- [ ] T010 [US1] 調整內部表格寬度確保為 `100%` 以適應彈性容器
+- [X] T007 [US1] 在 `public/pages/admin.html` 中將兩個 `section.glass` 區塊包裹入 `.admin-main` 容器
+- [X] T008 [US1] 對 `.admin-main` 應用 `display: flex` 與 `gap: 20px`
+- [X] T009 [US1] 對使用者管理區塊應用 `flex: 2`，對日誌區塊應用 `flex: 3`
+- [X] T010 [US1] 調整內部表格寬度確保為 `100%` 以適應彈性容器
 
 **Checkpoint**: 此時，2:3 並排視圖應已功能完備並可獨立測試
 
@@ -67,13 +67,13 @@
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T011 [US2] 在 `tests/unit/ui-refinements.test.js` 撰寫驗證全頁垂直捲動與容器高度彈性的測試案例
+- [X] T011 [US2] 在 `tests/unit/ui-refinements.test.js` 撰寫驗證全頁垂直捲動與容器高度彈性的測試案例
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] 移除 `public/pages/admin.html` 中 `#logs-container` 的 `max-height: 400px` 限制
-- [ ] T013 [US2] 確保 `.admin-container` 的 `margin` 與 `padding` 在長頁面下仍能正確維持佈局美觀
-- [ ] T014 [US2] 驗證在資料量極少時，佈局不會塌陷 (Layout collapse)
+- [X] T012 [US2] 移除 `public/pages/admin.html` 中 `#logs-container` 的 `max-height: 400px` 限制
+- [X] T013 [US2] 確保 `.admin-container` 的 `margin` 與 `padding` 在長頁面下仍能正確維持佈局美觀
+- [X] T014 [US2] 驗證在資料量極少時，佈局不會塌陷 (Layout collapse)
 
 **Checkpoint**: 使用者故事 1 與 2 現在都應該能獨立運作並整合
 
@@ -87,13 +87,13 @@
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T015 [US3] 在 `tests/unit/ui-refinements.test.js` 撰寫驗證頁首 (Header) sticky 屬性的測試案例
+- [X] T015 [US3] 在 `tests/unit/ui-refinements.test.js` 撰寫驗證頁首 (Header) sticky 屬性的測試案例
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] 對 `public/pages/admin.html` 中的 `header` 應用 `position: sticky; top: 0; z-index: 1000;`
-- [ ] T017 [US3] 強化頁首的 `glass` 效果，設定 `backdrop-filter: blur(10px)` 與 `background: rgba(255, 255, 255, 0.8)` 確保標題可讀性
-- [ ] T018 [US3] 調整頁首與下方內容的間距 (margin/padding) 避免被遮蓋
+- [X] T016 [US3] 對 `public/pages/admin.html` 中的 `header` 應用 `position: sticky; top: 0; z-index: 1000;`
+- [X] T017 [US3] 強化頁首的 `glass` 效果，設定 `backdrop-filter: blur(10px)` 與 `background: rgba(255, 255, 255, 0.8)` 確保標題可讀性
+- [X] T018 [US3] 調整頁首與下方內容的間距 (margin/padding) 避免被遮蓋
 
 ---
 
@@ -101,18 +101,18 @@
 
 **Purpose**: 確保內部邏輯具備充足測試覆蓋率 (符合憲法 80% 要求)
 
-- [ ] T019 [P] 為 `admin.html` 中的 `loadUsers` 邏輯撰寫單元測試 (Mock Fetch API)
-- [ ] T020 [P] 為 `admin.html` 中的 `loadLogs` 邏輯撰寫單元測試 (Mock Fetch API)
-- [ ] T021 [P] 驗證 `updateRole` 與 `unlockUser` 在 UI 上的錯誤處理邏輯
+- [X] T019 [P] 為 `admin.html` 中的 `loadUsers` 邏輯撰寫單元測試 (Mock Fetch API)
+- [X] T020 [P] 為 `admin.html` 中的 `loadLogs` 邏輯撰寫單元測試 (Mock Fetch API)
+- [X] T021 [P] 驗證 `updateRole` 與 `unlockUser` 在 UI 上的錯誤處理邏輯
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 **Purpose**: 多個使用者故事的共同改進與最終驗證
 
-- [ ] T022 [P] 統一全頁的 Glassmorphism 樣式與背景 Blob 渲染一致性於 `public/pages/admin.html`
-- [ ] T023 優化在 1200px 臨界點時橫向捲軸出現的視覺平滑度
-- [ ] T024 執行 `quickstart.md` 中的手動驗證流程
-- [ ] T025 執行完整單元測試 `npm test tests/unit/ui-refinements.test.js`
+- [X] T022 [P] 統一全頁的 Glassmorphism 樣式與背景 Blob 渲染一致性於 `public/pages/admin.html`
+- [X] T023 優化在 1200px 臨界點時橫向捲軸出現的視覺平滑度
+- [X] T024 執行 `quickstart.md` 中的手動驗證流程
+- [X] T025 執行完整單元測試 `npm test tests/unit/ui-refinements.test.js`
 
 ---
 

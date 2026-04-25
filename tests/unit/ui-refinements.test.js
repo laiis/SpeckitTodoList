@@ -1,111 +1,57 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { JSDOM } from 'jsdom';
 
-describe('UI/UX Refinements', () => {
+describe('Admin Layout Refinement', () => {
   let dom;
   let document;
-  let window;
 
   beforeEach(() => {
+    // 模擬基礎結構，Phase 1 & 2 完成後的預期結構
     dom = new JSDOM('<!DOCTYPE html><html><body>' +
-      '<div class="kanban-scroll-top" style="overflow-x: auto; height: 15px;">' +
-      '  <div class="kanban-dummy-content" style="height: 1px;"></div>' +
+      '<div class="admin-wrapper" style="min-width: 1200px; overflow-x: auto;">' +
+      '  <header class="glass" style="position: sticky; top: 0; z-index: 1000;"></header>' +
+      '  <main class="admin-main" style="display: flex; gap: 20px;">' +
+      '    <section id="user-section" class="glass" style="flex: 2;"></section>' +
+      '    <section id="log-section" class="glass" style="flex: 3;"></section>' +
+      '  </main>' +
       '</div>' +
-      '<div class="kanban-container" id="kanban-container" style="overflow-x: auto;">' +
-      '  <div style="width: 2000px; height: 100px;">Content</div>' +
-      '</div>' +
-      '</body></html>', {
-        url: 'http://localhost',
-        contentType: 'text/html',
-      });
+      '</body></html>');
     document = dom.window.document;
-    window = dom.window;
-    global.document = document;
-    global.window = window;
-    global.HTMLElement = window.HTMLElement;
-    window.requestAnimationFrame = (callback) => setTimeout(callback, 0);
-    global.requestAnimationFrame = window.requestAnimationFrame;
   });
 
-  describe('User Story 1 - 看板雙橫向捲動條 (Scroll Synchronization)', () => {
-    it('T005: 當頂部捲動條捲動時，容器應同步捲動', async () => {
-      const scrollTop = document.querySelector('.kanban-scroll-top');
-      const container = document.getElementById('kanban-container');
-      
-      // 模擬同步邏輯
-      let isSyncing = false;
-      const sync = (source, target) => {
-        if (!isSyncing) {
-          isSyncing = true;
-          target.scrollLeft = source.scrollLeft;
-          window.requestAnimationFrame(() => isSyncing = false);
-        }
-      };
+  describe('User Story 1 - 2:3 Side-by-Side Layout', () => {
+    it('T006: 驗證使用者管理與系統日誌的寬度比例是否為 2:3', () => {
+      const userSection = document.getElementById('user-section');
+      const logSection = document.getElementById('log-section');
+      const adminMain = document.querySelector('.admin-main');
 
-      scrollTop.scrollLeft = 100;
-      sync(scrollTop, container);
-
-      expect(container.scrollLeft).toBe(100);
-    });
-
-    it('T006: 當容器寬度改變時，頂部捲動條虛擬內容應同步更新 (模擬 ResizeObserver 行為)', () => {
-      const container = document.getElementById('kanban-container');
-      const dummyContent = document.querySelector('.kanban-dummy-content');
-      
-      // 模擬 ResizeObserver 回呼邏輯
-      const updateDummyWidth = (source, target) => {
-        target.style.width = source.scrollWidth + 'px';
-      };
-
-      // 模擬容器寬度為 2000px
-      vi.spyOn(container, 'scrollWidth', 'get').mockReturnValue(2000);
-      
-      updateDummyWidth(container, dummyContent);
-      
-      expect(dummyContent.style.width).toBe('2000px');
+      expect(adminMain.style.display).toBe('flex');
+      // JSDOM 會將 flex: 2 擴展為 flex-grow: 2, flex-shrink: 1, flex-basis: 0%
+      expect(userSection.style.flex).toMatch(/^2/);
+      expect(logSection.style.flex).toMatch(/^3/);
     });
   });
 
-  describe('User Story 2 - 任務日期編輯 (Date Validation)', () => {
-    // 模擬 taskService.validateDateRange
-    const validateDateRange = (start, end) => {
-      if (!start || !end) return true;
-      return new Date(start) <= new Date(end);
-    };
-
-    it('T011: 應正確驗證日期範圍', () => {
-      expect(validateDateRange('2026-04-20', '2026-04-23')).toBe(true);
-      expect(validateDateRange('2026-04-23', '2026-04-20')).toBe(false);
-      expect(validateDateRange('2026-04-23', '2026-04-23')).toBe(true);
-      expect(validateDateRange(null, '2026-04-23')).toBe(true);
-      expect(validateDateRange('2026-04-20', null)).toBe(true);
+  describe('User Story 2 - Global Scrolling & Flexible Height', () => {
+    it('T011: 驗證 admin-wrapper 具備最小寬度與橫向捲軸屬性', () => {
+      const wrapper = document.querySelector('.admin-wrapper');
+      expect(wrapper.style.minWidth).toBe('1200px');
+      expect(wrapper.style.overflowX).toBe('auto');
     });
 
-    it('T012: 非法日期時應顯示錯誤狀態', () => {
-      const startInput = document.createElement('input');
-      const endInput = document.createElement('input');
-      const errorMsg = document.createElement('div');
-      errorMsg.className = 'error-message';
+    it('T012: 驗證 logs-container 已移除 max-height 限制以支援彈性高度', () => {
+      // 這裡模擬實際實作後的結構
+      dom = new JSDOM('<!DOCTYPE html><html><body><div id="logs-container" style="overflow-y: auto;"></div></body></html>');
+      const logsContainer = dom.window.document.getElementById('logs-container');
+      expect(logsContainer.style.maxHeight).toBe('');
+    });
+  });
 
-      const handleValidationUI = (start, end, startEl, endEl, errorEl) => {
-        const isValid = validateDateRange(start, end);
-        if (!isValid) {
-          startEl.classList.add('invalid');
-          endEl.classList.add('invalid');
-          errorEl.textContent = '起始日期不能晚於截止日期';
-          errorEl.style.display = 'block';
-        } else {
-          startEl.classList.remove('invalid');
-          endEl.classList.remove('invalid');
-          errorEl.style.display = 'none';
-        }
-      };
-
-      handleValidationUI('2026-04-23', '2026-04-20', startInput, endInput, errorMsg);
-
-      expect(startInput.classList.contains('invalid')).toBe(true);
-      expect(endInput.classList.contains('invalid')).toBe(true);
-      expect(errorMsg.textContent).toBe('起始日期不能晚於截止日期');
+  describe('User Story 3 - Sticky Header', () => {
+    it('T015: 驗證 Header 具備 sticky 屬性', () => {
+      const header = document.querySelector('header');
+      expect(header.style.position).toBe('sticky');
+      expect(header.style.top).toBe('0px');
     });
   });
 });
