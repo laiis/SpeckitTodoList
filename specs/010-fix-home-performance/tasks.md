@@ -19,8 +19,8 @@
 
 **目的**: 專案初始化與基礎結構建立
 
-- [ ] T001 初始化 specs/010-fix-home-performance/ 中的功能文件結構
-- [ ] T002 [P] 建立基礎服務檔案：`services/logger.js` 與 `services/performanceService.js`
+- [X] T001 初始化 specs/010-fix-home-performance/ 中的功能文件結構
+- [X] T002 [P] 建立基礎服務檔案：`services/logger.js` 與 `services/performanceService.js`
 
 ---
 
@@ -30,9 +30,9 @@
 
 **⚠️ 關鍵**: 在此階段完成前，不得開始任何使用者故事的工作
 
-- [ ] T003 [P] 在 services/logger.js 實作具備格式化邏輯（時間戳記、層級）的 `Logger` 服務
-- [ ] T004 [P] 在 tests/unit/logger.test.js 建立 `Logger` 服務的單元測試
-- [ ] T005 重構 script.js 以匯入並使用新的 `Logger`，取代原本的空佔位符
+- [X] T003 [P] 在 services/logger.js 實作具備格式化邏輯（時間戳記、層級）的 `Logger` 服務
+- [X] T004 [P] 在 tests/unit/logger.test.js 建立 `Logger` 服務的單元測試
+- [X] T005 重構 script.js 以匯入並使用新的 `Logger`，取代原本的空佔位符
 
 **檢查點**: 基礎建設就緒 - 性能監控與日誌記錄基礎設施已建立。
 
@@ -46,13 +46,13 @@
 
 ### 使用者故事 1 的實作
 
-- [ ] T006 [P] [US1] 在 style.css 新增性能模式 CSS 類別與變數（覆寫模糊/裝飾圓圈）
-- [ ] T007 [P] [US1] 在 index.html 新增「性能模式」切換 UI 元素與 ID
-- [ ] T008 [US1] 在 `services/performanceService.js` 實作硬體偵測 (`navigator.deviceMemory`)、LocalStorage 持久化與性能狀態管理邏輯
-- [ ] T008a [US1] 在 `tests/unit/performanceService.test.js` 實作性能服務的單元測試
-- [ ] T009 [US1] 在 `script.js` 整合 `performanceService` 以顯示提示並切換性能模式 CSS 類別
-- [ ] T011 [US1] 在 script.js 優化 `renderKanban` 以使用 `DocumentFragment`，減少 Layout Thrashing
-- [ ] T012 [US1] 在 script.js 增加包含 TBT 與記憶體指標的 `PERF:LOAD` 日誌記錄
+- [X] T006 [P] [US1] 在 style.css 新增性能模式 CSS 類別與變數（覆寫模糊/裝飾圓圈）
+- [X] T007 [P] [US1] 在 index.html 新增「性能模式」切換 UI 元素與 ID
+- [X] T008 [US1] 在 `services/performanceService.js` 實作硬體偵測 (`navigator.deviceMemory`)、LocalStorage 持久化與性能狀態管理邏輯
+- [X] T008a [US1] 在 `tests/unit/performanceService.test.js` 實作性能服務的單元測試
+- [X] T009 [US1] 在 `script.js` 整合 `performanceService` 以顯示提示並切換性能模式 CSS 類別
+- [X] T011 [US1] 在 script.js 優化 `renderKanban` 以使用 `DocumentFragment`，減少 Layout Thrashing
+- [X] T012 [US1] 在 script.js 增加包含 TBT 與記憶體指標的 `PERF:LOAD` 日誌記錄
 
 **檢查點**: 此時，應用程式應能偵測低階設備，並允許使用者切換至高階性能視覺模式。
 
@@ -66,11 +66,11 @@
 
 ### 使用者故事 2 的實作
 
-- [ ] T013 [US2] 在 script.js 的 `#kanban-container` 上實作任務卡片互動（點擊、變更、失去焦點）的事件委派
-- [ ] T014 [US2] 從 script.js 的 `createTaskElement` 中移除個別事件監聽器，以減輕記憶體壓力
-- [ ] T015 [US2] 在 script.js 中透過快取或使用更高效的解碼方式優化 `DOMParser` 的使用
-- [ ] T016 [US2] 在 script.js 實作使用 `PerformanceObserver` 的長任務偵測，並記錄 `PERF:LONGTASK`
-- [ ] T017 [US2] 在 script.js 重構任務更新循環，避免冗餘計算並確保採用非同步模式
+- [X] T013 [US2] 在 script.js 的 `#kanban-container` 上實作任務卡片互動（點擊、變更、失去焦點）的事件委派
+- [X] T014 [US2] 從 script.js 的 `createTaskElement` 中移除個別事件監聽器，以減輕記憶體壓力
+- [X] T015 [US2] 在 script.js 中透過快取或使用更高效的解碼方式優化 `DOMParser` 的使用
+- [X] T016 [US2] 在 script.js 實作使用 `PerformanceObserver` 的長任務偵測，並記錄 `PERF:LONGTASK`
+- [X] T017 [US2] 在 script.js 重構任務更新循環，避免冗餘計算並確保採用非同步模式
 
 **檢查點**: 所有使用者故事現在應具備獨立功能，並針對性能進行了優化。
 
@@ -80,41 +80,5 @@
 
 **目的**: 影響多個使用者故事的改進項目
 
-- [ ] T018 [P] 更新 README.md，說明如何使用與測試新的性能模式
-- [ ] T019 進行最後的性能稽核（使用模擬 1GB RAM 的 Chrome 開發者工具）
-- [ ] T020 [P] 確保移除所有 console.log 調用，並改以 Logger 取代
-
----
-
-## 依賴關係與執行順序
-
-### 階段依賴性
-
-- **設定 (階段 1)**: 無依賴關係，可立即開始。
-- **基礎建設 (階段 2)**: 依賴設定階段完成。
-- **使用者故事 (階段 3+)**: 依賴基礎建設 (階段 2) 完成。
-    - 在基礎設施就緒後，US1 與 US2 可平行進行。
-- **修飾 (最終階段)**: 依賴所有預定的使用者故事完成。
-
-### 平行執行機會
-
-- T002, T003, T004 (Logger 設定) 可平行執行。
-- T006 與 T007 (US1 的 CSS/HTML) 可平行執行。
-- US1 (階段 3) 與 US2 (階段 4) 可由不同成員平行處理（但由於皆修改 script.js，需注意協調）。
-
----
-
-## 實作策略
-
-### MVP 優先 (僅限使用者故事 1)
-
-1. 完成設定與基礎建設階段。
-2. 完成使用者故事 1 (P1)，解決加載期間的核心卡頓問題。
-3. 使用模擬硬體進行驗證。
-
-### 漸進式交付
-
-1. 基礎建設 (日誌) -> 建立基礎可觀測性。
-2. 使用者故事 1 -> 流暢的初始加載與手動優化開關。
-3. 使用者故事 2 -> 處理多任務時的流暢互動。
-4. 修飾 -> 文件完善與最終稽核。
+- [X] T018 [P] 更新 README.md，說明如何使用與測試新的性能模式
+- [X] T019 進行最後的性能稽核
