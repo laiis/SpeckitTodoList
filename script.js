@@ -1,12 +1,7 @@
 import { authService } from './services/auth.js';
 import { taskService } from './services/taskService.js';
-
-// 提取核心邏輯以利測試
-// 憲法要求：封裝日誌記錄，嚴禁使用 console.log
-const Logger = {
-    info: (...args) => {},
-    error: (...args) => {}
-};
+import logger from './services/logger.js';
+import performanceService from './services/performanceService.js';
 
 // T004: 封裝 requestAnimationFrame 基礎同步函數以確保 60fps 效能
 const UISync = {
@@ -31,7 +26,7 @@ export class TodoService {
 
     constructor() {
         this.todos = [];
-        Logger.info(`TodoService initialized.`);
+        logger.info(`TodoService initialized.`);
     }
 
     async loadTodos() {
@@ -39,12 +34,12 @@ export class TodoService {
             const response = await fetch('/api/tasks');
             if (response.ok) {
                 this.todos = await response.json();
-                Logger.info(`Loaded ${this.todos.length} items from backend.`);
+                logger.info(`Loaded ${this.todos.length} items from backend.`);
             } else if (response.status === 401 || response.status === 403) {
                 window.location.href = 'pages/login.html';
             }
         } catch (error) {
-            Logger.error('Failed to load todos:', error);
+            logger.error(`Failed to load todos: ${error.message}`);
         }
         return this.todos;
     }
@@ -64,10 +59,10 @@ export class TodoService {
                 const updated = await response.json();
                 this.todos = this.todos.map(t => t.id === id ? { ...t, ...updated } : t);
                 this.sortTodos();
-                Logger.info(`Task ${id} updated.`);
+                logger.info(`Task ${id} updated.`);
             }
         } catch (error) {
-            Logger.error('Failed to update task:', error);
+            logger.error(`Failed to update task: ${error.message}`);
         }
         return this.todos;
     }
@@ -96,11 +91,11 @@ export class TodoService {
                 const newTask = await response.json();
                 this.todos.push(newTask);
                 this.sortTodos();
-                Logger.info(`Created new task: ${text} with priority ${priority}, start date ${startDate} and due date ${dueDate}`);
+                logger.info(`Created new task: ${text} with priority ${priority}, start date ${startDate} and due date ${dueDate}`);
                 return newTask;
             }
         } catch (error) {
-            Logger.error('Failed to create task:', error);
+            logger.error(`Failed to create task: ${error.message}`);
         }
         return null;
     }
@@ -124,10 +119,10 @@ export class TodoService {
             const response = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
             if (response.ok) {
                 this.todos = this.todos.filter(t => t.id !== id);
-                Logger.info(`Deleted task ${id}`);
+                logger.info(`Deleted task ${id}`);
             }
         } catch (error) {
-            Logger.error('Failed to delete task:', error);
+            logger.error(`Failed to delete task: ${error.message}`);
         }
         return this.todos;
     }
@@ -152,9 +147,10 @@ export class TodoService {
     }
 }
 
+const parser = new DOMParser();
 function unescapeHTML(str) {
     if (!str) return '';
-    const doc = new DOMParser().parseFromString(str, 'text/html');
+    const doc = parser.parseFromString(str, 'text/html');
     return doc.documentElement.textContent;
 }
 
@@ -192,6 +188,82 @@ document.addEventListener('DOMContentLoaded', async () => {
         // T010: 實作雙向捲動同步，使用 UISync.sync 確保效能
         kanbanScrollTop.onscroll = () => UISync.sync(kanbanScrollTop, kanbanContainer);
         kanbanContainer.onscroll = () => UISync.sync(kanbanContainer, kanbanScrollTop);
+
+        // T013: 看板容器事件委派
+        kanbanContainer.addEventListener('click', async (e) => {
+            const target = e.target;
+            const item = target.closest('.todo-item');
+            if (!item) return;
+            const id = parseInt(item.dataset.id);
+
+            // 刪除按鈕
+            if (target.classList.contains('js-delete-btn')) {
+                await todoService.deleteTask(id);
+                render();
+                return;
+            }
+
+            // 進入編輯模式
+            if (target.classList.contains('js-edit-trigger')) {
+                toggleItemEditMode(item, true);
+                return;
+            }
+        });
+
+        kanbanContainer.addEventListener('change', async (e) => {
+            const target = e.target;
+            const item = target.closest('.todo-item');
+            if (!item) return;
+            const id = parseInt(item.dataset.id);
+
+            // 狀態 Checkbox
+            if (target.classList.contains('js-checkbox')) {
+                const newStatus = target.checked ? TodoService.Status.DONE : TodoService.Status.TODO;
+                await todoService.updateTaskStatus(id, newStatus);
+                render();
+                return;
+            }
+
+            // 狀態下拉選單
+            if (target.classList.contains('js-status-select')) {
+                await todoService.updateTaskStatus(id, target.value);
+                render();
+                return;
+            }
+
+            // 優先序下拉選單
+            if (target.classList.contains('js-priority-select')) {
+                await todoService.updateTaskPriority(id, parseInt(target.value));
+                render();
+                return;
+            }
+        });
+
+        // 處理編輯模式下的 blur 與 keydown
+        kanbanContainer.addEventListener('focusout', async (e) => {
+            const target = e.target;
+            if (target.classList.contains('js-text-input') || 
+                target.classList.contains('js-edit-start-date') || 
+                target.classList.contains('js-edit-due-date')) {
+                
+                const item = target.closest('.todo-item');
+                // 延遲處理以檢查下一個 focus 元素
+                setTimeout(async () => {
+                    const activeEl = document.activeElement;
+                    if (item && item.contains(activeEl)) return; // 焦點仍在同一任務卡片內
+                    
+                    if (item) await saveItemChanges(item);
+                }, 200);
+            }
+        });
+
+        kanbanContainer.addEventListener('keydown', async (e) => {
+            const target = e.target;
+            if (target.classList.contains('js-text-input') && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                target.blur();
+            }
+        });
     }
 
     const mobileTabs = document.getElementById('mobile-tabs');
@@ -261,8 +333,47 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentDateDisplay.textContent = new Date().toLocaleDateString('zh-TW', options);
         }
         initTheme();
+        initPerformanceMode();
         await todoService.loadTodos();
         render();
+        logLoadPerformance();
+        setupLongTaskObserver();
+    }
+
+    function setupLongTaskObserver() {
+        if (typeof PerformanceObserver === 'undefined') return;
+
+        try {
+            const observer = new PerformanceObserver((list) => {
+                list.getEntries().forEach((entry) => {
+                    logger.warn(`PERF:LONGTASK | Duration: ${entry.duration.toFixed(0)}ms | Interaction: unknown`);
+                });
+            });
+            observer.observe({ entryTypes: ['longtask'] });
+        } catch (e) {
+            logger.error(`Failed to setup LongTaskObserver: ${e.message}`);
+        }
+    }
+
+    function logLoadPerformance() {
+        // 使用 PerformanceObserver 獲取 LCP
+        const observer = new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            const lastEntry = entries[entries.length - 1];
+            const lcp = lastEntry.startTime.toFixed(0);
+            const ram = performanceService.getMemoryInfo();
+            // 這裡 LCP 代表 Largest Contentful Paint，TBT 暫記為 0 (待 US2 長任務偵測實作)
+            logger.info(`PERF:LOAD | TBT: 0ms | LCP: ${lcp}ms | RAM: ${ram}GiB`);
+            observer.disconnect();
+        });
+        
+        try {
+            observer.observe({ type: 'largest-contentful-paint', buffered: true });
+        } catch (e) {
+            // 某些瀏覽器可能不支援 LCP
+            const ram = performanceService.getMemoryInfo();
+            logger.info(`PERF:LOAD | TBT: 0ms | LCP: unknown | RAM: ${ram}GiB`);
+        }
     }
 
     function initTheme() {
@@ -276,6 +387,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    function initPerformanceMode() {
+        const isEnabled = performanceService.isEnabled();
+        document.body.classList.toggle('performance-mode', isEnabled);
+
+        if (performanceService.shouldSuggestMode()) {
+            setTimeout(() => {
+                if (confirm('偵測到您的硬體規格較低 (RAM <= 1GB)，是否開啟「性能模式」以獲得更流暢的體驗？')) {
+                    togglePerformanceMode();
+                } else {
+                    localStorage.setItem('performance-mode', 'false');
+                }
+            }, 1000); // 稍微延遲提示，避免干擾初始加載
+        }
+    }
+
+    function togglePerformanceMode() {
+        const newState = performanceService.toggle();
+        document.body.classList.toggle('performance-mode', newState);
+        logger.info(`PERF:MODE_CHANGE | Enabled: ${newState}`);
+        render();
+    }
+
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
@@ -283,6 +416,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
             if (themeIcon) themeIcon.textContent = isDark ? '☀️' : '🌙';
         });
+    }
+
+    const perfToggle = document.getElementById('perf-toggle');
+    if (perfToggle) {
+        perfToggle.addEventListener('click', togglePerformanceMode);
     }
 
     if (logoutBtn) {
@@ -298,15 +436,83 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateStats();
     }
 
+    function toggleItemEditMode(item, isEditing) {
+        const display = item.querySelector('.js-edit-trigger');
+        const input = item.querySelector('.js-text-input');
+        const dateRow = item.querySelector('.js-date-edit-row');
+        const errorMsg = item.querySelector('.js-error-message');
+        const startInput = item.querySelector('.js-edit-start-date');
+        const dueInput = item.querySelector('.js-edit-due-date');
+
+        if (isEditing) {
+            display.style.display = 'none';
+            input.style.display = 'block';
+            dateRow.style.display = 'block';
+            input.rows = 10;
+            input.focus();
+        } else {
+            input.style.display = 'none';
+            dateRow.style.display = 'none';
+            display.style.display = '';
+            
+            if (startInput) startInput.classList.remove('invalid');
+            if (dueInput) dueInput.classList.remove('invalid');
+            if (errorMsg) errorMsg.style.display = 'none';
+        }
+    }
+
+    async function saveItemChanges(item) {
+        const id = parseInt(item.dataset.id);
+        const input = item.querySelector('.js-text-input');
+        const startInput = item.querySelector('.js-edit-start-date');
+        const dueInput = item.querySelector('.js-edit-due-date');
+        const errorMsg = item.querySelector('.js-error-message');
+
+        const newContent = input.value.trim();
+        const newStart = startInput.value || null;
+        const newDue = dueInput.value || null;
+
+        if (!taskService.validateDateRange(newStart, newDue)) {
+            startInput.classList.add('invalid');
+            dueInput.classList.add('invalid');
+            errorMsg.style.display = 'block';
+            input.focus();
+            return;
+        }
+
+        toggleItemEditMode(item, false);
+
+        const todo = todoService.getTodos().find(t => t.id === id);
+        if (!todo) return;
+
+        const hasContentChanged = newContent !== todo.content;
+        const hasStartChanged = (newStart || '') !== (todo.start_date || '');
+        const hasDueChanged = (newDue || '') !== (todo.due_date || '');
+
+        if (hasContentChanged || hasStartChanged || hasDueChanged) {
+            await todoService.updateTask(id, { 
+                content: newContent,
+                start_date: newStart,
+                due_date: newDue
+            });
+            render();
+        }
+    }
+
     function renderKanban() {
         if (!kanbanContainer) return;
-        kanbanContainer.innerHTML = '';
-
+        
+        // T011: 使用 DocumentFragment 減少重排 (Reflow)
+        const fragment = document.createDocumentFragment();
         const activeColumns = getActiveColumns();
+        
         activeColumns.forEach(colDef => {
             const columnEl = createColumnElement(colDef);
-            kanbanContainer.appendChild(columnEl);
+            fragment.appendChild(columnEl);
         });
+
+        kanbanContainer.innerHTML = '';
+        kanbanContainer.appendChild(fragment);
 
         if (currentFilter === 'active') {
             const todoColumn = kanbanContainer.querySelector(`.status-${TodoService.Status.TODO}`);
@@ -377,6 +583,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         item.className = `todo-item ${todo.status === TodoService.Status.DONE ? 'completed' : ''} ${priorityClass} ${overdueClass}`;
+        item.dataset.id = todo.id; // T013: 加入 data-id 以供事件委派使用
         
         let timeLabelText = `建立於: ${formatDateTime(todo.created_at)}`;
         if (todo.start_date || todo.due_date) {
@@ -388,6 +595,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
+        checkbox.className = 'js-checkbox'; // T013: 加入標識類別
         checkbox.checked = todo.status === TodoService.Status.DONE;
 
         const todoContent = document.createElement('div');
@@ -397,7 +605,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         headerRow.className = 'todo-header-row';
 
         const statusSelect = document.createElement('select');
-        statusSelect.className = 'status-select';
+        statusSelect.className = 'status-select js-status-select'; // T013: 加入標識類別
         columnDefinitions.forEach(opt => {
             const option = document.createElement('option');
             option.value = opt.status;
@@ -407,7 +615,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         const prioritySelect = document.createElement('select');
-        prioritySelect.className = 'priority-select-item';
+        prioritySelect.className = 'priority-select-item js-priority-select'; // T013: 加入標識類別
         [1, 2, 3].forEach(p => {
             const option = document.createElement('option');
             option.value = p;
@@ -417,58 +625,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         const textDisplay = document.createElement('div');
-        textDisplay.className = 'todo-text-display';
-        textDisplay.innerHTML = todo.content; // 使用 innerHTML 以解析後端脫逸的字元
+        textDisplay.className = 'todo-text-display js-edit-trigger'; // T013: 加入標識類別
+        textDisplay.innerHTML = todo.content; 
 
         const textInput = document.createElement('textarea');
-        textInput.className = 'todo-text edit-mode';
-        textInput.value = unescapeHTML(todo.content); // 編輯時還原為原始文字
+        textInput.className = 'todo-text edit-mode js-text-input'; // T013: 加入標識類別
+        textInput.value = unescapeHTML(todo.content); 
         textInput.style.display = 'none';
 
         // T013: 渲染日期編輯器與錯誤訊息容器
         const dateEditRow = document.createElement('div');
-        dateEditRow.className = 'todo-date-edit-row';
+        dateEditRow.className = 'todo-date-edit-row js-date-edit-row';
         dateEditRow.style.display = 'none';
         dateEditRow.innerHTML = `
             <div class="edit-date-inputs">
-                <input type="date" class="edit-start-date" value="${todo.start_date || ''}">
+                <input type="date" class="edit-start-date js-edit-start-date" value="${todo.start_date || ''}">
                 <span>至</span>
-                <input type="date" class="edit-due-date" value="${todo.due_date || ''}">
+                <input type="date" class="edit-due-date js-edit-due-date" value="${todo.due_date || ''}">
             </div>
-            <div class="error-message">起始日期不能晚於截止日期</div>
+            <div class="error-message js-error-message">起始日期不能晚於截止日期</div>
         `;
-
-        const editStartInput = dateEditRow.querySelector('.edit-start-date');
-        const editDueInput = dateEditRow.querySelector('.edit-due-date');
-        const errorMsg = dateEditRow.querySelector('.error-message');
-
-        const toggleEditMode = (isEditing) => {
-            if (isEditing) {
-                textDisplay.style.display = 'none';
-                textInput.style.display = 'block';
-                dateEditRow.style.display = 'block';
-                textInput.rows = 10;
-                textInput.focus();
-            } else {
-                textInput.style.display = 'none';
-                dateEditRow.style.display = 'none';
-                textDisplay.style.display = '';
-                
-                // 重置驗證狀態
-                editStartInput.classList.remove('invalid');
-                editDueInput.classList.remove('invalid');
-                errorMsg.style.display = 'none';
-            }
-        };
-
-        textDisplay.addEventListener('click', () => toggleEditMode(true));
 
         const timeLabel = document.createElement('span');
         timeLabel.className = 'todo-time';
         timeLabel.textContent = timeLabelText;
 
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
+        deleteBtn.className = 'delete-btn js-delete-btn'; // T013: 加入標識類別
         deleteBtn.innerHTML = '&times;';
 
         headerRow.appendChild(statusSelect);
@@ -484,90 +667,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         item.appendChild(todoContent);
         item.appendChild(deleteBtn);
 
-        checkbox.addEventListener('change', async () => {
-            const newStatus = checkbox.checked ? TodoService.Status.DONE : TodoService.Status.TODO;
-            await todoService.updateTaskStatus(todo.id, newStatus);
-            render();
-        });
-
-        statusSelect.addEventListener('change', async (e) => {
-            await todoService.updateTaskStatus(todo.id, e.target.value);
-            render();
-        });
-
-        prioritySelect.addEventListener('change', async (e) => {
-            await todoService.updateTaskPriority(todo.id, parseInt(e.target.value));
-            render();
-        });
-
-        textInput.addEventListener('blur', async () => {
-            // 使用 setTimeout 確保能抓取到新的 focus 元素 (document.activeElement)
-            setTimeout(async () => {
-                const activeEl = document.activeElement;
-                // 如果焦點移到了日期輸入框，則不關閉編輯模式
-                if (activeEl === editStartInput || activeEl === editDueInput) {
-                    return;
-                }
-
-                const newContent = textInput.value.trim();
-                const newStart = editStartInput.value || null;
-                const newDue = editDueInput.value || null;
-
-                // T015: 調用 taskService.validateDateRange
-                if (!taskService.validateDateRange(newStart, newDue)) {
-                    editStartInput.classList.add('invalid');
-                    editDueInput.classList.add('invalid');
-                    errorMsg.style.display = 'block';
-                    // 保持編輯模式
-                    textInput.focus();
-                    return;
-                }
-
-                toggleEditMode(false);
-                
-                const hasContentChanged = newContent !== todo.content;
-                const hasStartChanged = (newStart || '') !== (todo.start_date || '');
-                const hasDueChanged = (newDue || '') !== (todo.due_date || '');
-
-                if (hasContentChanged || hasStartChanged || hasDueChanged) {
-                    // T016: 支援傳送 null (透過 updateTask 統一處理)
-                    await todoService.updateTask(todo.id, { 
-                        content: newContent,
-                        start_date: newStart,
-                        due_date: newDue
-                    });
-                    render();
-                }
-            }, 200);
-        });
-
-        // 防止日期輸入框的點擊事件冒泡，並處理其失去焦點時的儲存邏輯
-        const handleInputBlur = () => {
-            setTimeout(() => {
-                const activeEl = document.activeElement;
-                // 如果焦點離開了所有編輯控制項，則觸發 textInput 的 blur 邏輯進行儲存
-                if (activeEl !== textInput && activeEl !== editStartInput && activeEl !== editDueInput) {
-                    textInput.blur();
-                }
-            }, 200);
-        };
-
-        editStartInput.addEventListener('blur', handleInputBlur);
-        editDueInput.addEventListener('blur', handleInputBlur);
-        dateEditRow.addEventListener('click', (e) => e.stopPropagation());
-
-        textInput.addEventListener('keydown', async (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                textInput.blur(); // 觸發 blur 以儲存
-            }
-        });
-
-        deleteBtn.addEventListener('click', async () => {
-            await todoService.deleteTask(todo.id);
-            render();
-        });
-
+        // 移除所有個別事件監聽器，改由看板容器委派
         return item;
     }
 

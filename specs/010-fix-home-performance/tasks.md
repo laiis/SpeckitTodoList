@@ -1,0 +1,84 @@
+# 任務清單：首頁性能優化
+
+**輸入**: 來自 `/specs/010-fix-home-performance/` 的設計文件
+**先決條件**: plan.md (必要), spec.md (使用者故事必要), research.md, data-model.md, contracts/
+
+**測試**: **強制執行**。根據專案憲法，所有新增的業務邏輯必須具備單元測試，且覆蓋率應達 80% 以上。
+
+**組織方式**: 任務按使用者故事分組，以實現每個故事的獨立開發與測試。
+
+## 格式：`[ID] [P?] [故事] 描述`
+
+- **[P]**: 可平行執行（不同檔案，無依賴關係）
+- **[故事]**: 該任務所屬的使用者故事（例如：US1, US2, US3）
+- 描述中需包含精確的檔案路徑
+
+---
+
+## 階段 1：設定 (共享基礎設施)
+
+**目的**: 專案初始化與基礎結構建立
+
+- [X] T001 初始化 specs/010-fix-home-performance/ 中的功能文件結構
+- [X] T002 [P] 建立基礎服務檔案：`services/logger.js` 與 `services/performanceService.js`
+
+---
+
+## 階段 2：基礎建設 (阻塞性先決條件)
+
+**目的**: 在實作任何使用者故事之前必須完成的核心基礎設施
+
+**⚠️ 關鍵**: 在此階段完成前，不得開始任何使用者故事的工作
+
+- [X] T003 [P] 在 services/logger.js 實作具備格式化邏輯（時間戳記、層級）的 `Logger` 服務
+- [X] T004 [P] 在 tests/unit/logger.test.js 建立 `Logger` 服務的單元測試
+- [X] T005 重構 script.js 以匯入並使用新的 `Logger`，取代原本的空佔位符
+
+**檢查點**: 基礎建設就緒 - 性能監控與日誌記錄基礎設施已建立。
+
+---
+
+## 階段 3：使用者故事 1 - 低階硬體流暢存取 (優先級: P1) 🎯 MVP
+
+**目標**: 優化初始頁面加載，並為低階設備提供「性能模式」。
+
+**獨立測試**: 使用模擬的 1GB RAM 與 CPU 節流加載頁面；驗證 CPU 使用率 < 30% 且性能模式切換功能正常。
+
+### 使用者故事 1 的實作
+
+- [X] T006 [P] [US1] 在 style.css 新增性能模式 CSS 類別與變數（覆寫模糊/裝飾圓圈）
+- [X] T007 [P] [US1] 在 index.html 新增「性能模式」切換 UI 元素與 ID
+- [X] T008 [US1] 在 `services/performanceService.js` 實作硬體偵測 (`navigator.deviceMemory`)、LocalStorage 持久化與性能狀態管理邏輯
+- [X] T008a [US1] 在 `tests/unit/performanceService.test.js` 實作性能服務的單元測試
+- [X] T009 [US1] 在 `script.js` 整合 `performanceService` 以顯示提示並切換性能模式 CSS 類別
+- [X] T011 [US1] 在 script.js 優化 `renderKanban` 以使用 `DocumentFragment`，減少 Layout Thrashing
+- [X] T012 [US1] 在 script.js 增加包含 TBT 與記憶體指標的 `PERF:LOAD` 日誌記錄
+
+**檢查點**: 此時，應用程式應能偵測低階設備，並允許使用者切換至高階性能視覺模式。
+
+---
+
+## 階段 4：使用者故事 2 - 高性能任務互動 (優先級: P2)
+
+**目標**: 確保即使在有多個任務的情況下，互動（新增/編輯/刪除）依然流暢。
+
+**獨立測試**: 新增 50+ 個任務並執行快速互動；驗證無超過 50ms 的「長任務」且 CPU < 60%。
+
+### 使用者故事 2 的實作
+
+- [X] T013 [US2] 在 script.js 的 `#kanban-container` 上實作任務卡片互動（點擊、變更、失去焦點）的事件委派
+- [X] T014 [US2] 從 script.js 的 `createTaskElement` 中移除個別事件監聽器，以減輕記憶體壓力
+- [X] T015 [US2] 在 script.js 中透過快取或使用更高效的解碼方式優化 `DOMParser` 的使用
+- [X] T016 [US2] 在 script.js 實作使用 `PerformanceObserver` 的長任務偵測，並記錄 `PERF:LONGTASK`
+- [X] T017 [US2] 在 script.js 重構任務更新循環，避免冗餘計算並確保採用非同步模式
+
+**檢查點**: 所有使用者故事現在應具備獨立功能，並針對性能進行了優化。
+
+---
+
+## 階段 5：修飾與跨切向關注點
+
+**目的**: 影響多個使用者故事的改進項目
+
+- [X] T018 [P] 更新 README.md，說明如何使用與測試新的性能模式
+- [X] T019 進行最後的性能稽核

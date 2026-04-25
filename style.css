@@ -52,6 +52,26 @@ body.dark-mode {
     --status-done-text: #a7f3d0;
 }
 
+/* T006: 性能模式覆寫 */
+body.performance-mode {
+    --blur-effect: 0px !important;
+    --bg-gradient: #f5f7fa; /* 簡化背景為純色 */
+}
+
+body.performance-mode.dark-mode {
+    --bg-gradient: #0f172a;
+}
+
+body.performance-mode .background-blobs {
+    display: none !important; /* 移除背景動畫圓圈 */
+}
+
+body.performance-mode .glass {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--item-bg); /* 改用不透明背景 */
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -380,8 +400,8 @@ header p {
     margin-top: 0.2rem;
 }
 
-/* 主題切換按鈕 */
-#theme-toggle {
+/* 主題與性能切換按鈕 */
+#theme-toggle, #perf-toggle {
     background: var(--filter-bg);
     border: 1px solid var(--glass-border);
     width: 40px;
@@ -396,8 +416,13 @@ header p {
     transition: all 0.3s ease;
 }
 
-#theme-toggle:hover {
+#theme-toggle:hover, #perf-toggle:hover {
     background: var(--glass-border);
+}
+
+body.performance-mode #perf-toggle {
+    background: var(--primary-color);
+    color: white;
 }
 
 /* 輸入框區塊 */
