@@ -7,17 +7,77 @@
     <link rel="stylesheet" href="../style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --min-width: 1200px;
+            --ratio-user: 2;
+            --ratio-log: 3;
+        }
+        body.admin-page {
+            overflow: auto !important;
+            display: block !important;
+        }
+        .admin-wrapper {
+            min-width: var(--min-width);
+            overflow-x: auto;
+            min-height: 100vh;
+            background: var(--bg-gradient);
+        }
+        /* 自定義捲動條 - 橫向 */
+        .admin-wrapper::-webkit-scrollbar {
+            height: 10px;
+        }
+        .admin-wrapper::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .admin-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+        }
+        .admin-wrapper::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.5);
+        }
+
         .admin-container {
-            max-width: 1000px;
+            width: 100%;
             margin: 40px auto;
-            padding: 20px;
+            padding: 0 40px;
+            box-sizing: border-box;
+        }
+        .admin-main {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .user-mgmt {
+            flex: var(--ratio-user);
+        }
+        .sys-logs {
+            flex: var(--ratio-log);
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 20px 40px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-effect));
+            -webkit-backdrop-filter: blur(var(--blur-effect));
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
         }
         .section {
             margin-bottom: 40px;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-effect));
+            -webkit-backdrop-filter: blur(var(--blur-effect));
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
         }
         table {
             width: 100%;
@@ -26,37 +86,63 @@
         }
         th, td {
             text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 14px;
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--text-main);
+        }
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
         }
         .log-entry {
             font-family: monospace;
             font-size: 0.9em;
-            padding: 5px 0;
-            border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--glass-border);
+            color: var(--text-main);
         }
-        .level-security { color: #ff4757; font-weight: bold; }
-        .level-info { color: #2ed573; }
-        .level-error { color: #ff6b81; }
+        .level-security { color: #ef4444; font-weight: 600; }
+        .level-info { color: #10b981; }
+        .level-error { color: #f87171; }
         .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
             color: white;
+            font-weight: 600;
+            text-transform: uppercase;
         }
-        .badge-admin { background: #5352ed; }
-        .badge-editor { background: #2ed573; }
-        .badge-viewer { background: #747d8c; }
+        .badge-admin { background: #6366f1; }
+        .badge-editor { background: #10b981; }
+        .badge-viewer { background: #94a3b8; }
         .btn-sm {
-            padding: 4px 8px;
-            font-size: 0.8em;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
             cursor: pointer;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             margin-right: 5px;
+            transition: all 0.2s ease;
         }
-        .btn-unlock { background: #ffa502; color: white; }
-        .btn-reset { background: #5352ed; color: white; }
+        .btn-sm:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+        .btn-unlock { background: #f59e0b; color: white; }
+        .btn-reset { background: #6366f1; color: white; }
+        
+        select {
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--glass-border);
+            background: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+        }
     </style>
 </head>
 <body class="admin-page">
@@ -65,34 +151,38 @@
         <div class="blob blob-3"></div>
     </div>
 
-    <div class="admin-container">
-        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div class="admin-wrapper">
+        <header class="sticky-header">
             <h1>管理員儀表板</h1>
             <a href="../index.html" class="glass" style="padding: 10px 20px; text-decoration: none; color: inherit; border-radius: 8px;">返回首頁</a>
         </header>
 
-        <div class="section glass">
-            <h2>使用者管理</h2>
-            <table id="users-table">
-                <thead>
-                    <tr>
-                        <th>使用者名稱</th>
-                        <th>角色</th>
-                        <th>狀態</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="users-list">
-                    <!-- 使用者資料將在此插入 -->
-                </tbody>
-            </table>
-        </div>
+        <div class="admin-container">
+            <main class="admin-main">
+                <div class="section glass user-mgmt">
+                    <h2>使用者管理</h2>
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th>使用者名稱</th>
+                                <th>角色</th>
+                                <th>狀態</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-list">
+                            <!-- 使用者資料將在此插入 -->
+                        </tbody>
+                    </table>
+                </div>
 
-        <div class="section glass">
-            <h2>系統安全日誌</h2>
-            <div id="logs-container" style="max-height: 400px; overflow-y: auto;">
-                <!-- 日誌將在此插入 -->
-            </div>
+                <div class="section glass sys-logs">
+                    <h2>系統安全日誌</h2>
+                    <div id="logs-container">
+                        <!-- 日誌將在此插入 -->
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
