@@ -113,6 +113,7 @@
 - [X] T023 優化在 1200px 臨界點時橫向捲軸出現的視覺平滑度
 - [X] T024 執行 `quickstart.md` 中的手動驗證流程
 - [X] T025 執行完整單元測試 `npm test tests/unit/ui-refinements.test.js`
+- [X] T026 修正 `admin.html` 在低解析度下未出現捲軸的問題：覆蓋 `body.admin-page` 的 `overflow: hidden` 並移除置中對齊屬性
 
 ---
 

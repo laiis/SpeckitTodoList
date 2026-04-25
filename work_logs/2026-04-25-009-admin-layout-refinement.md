@@ -1,7 +1,7 @@
 # 工作日誌: 後台管理頁版面優化 (009-admin-layout-refinement)
 
 **日期**: 2026-04-25
-**狀態**: 實作與驗證完成 (Implementation & Verification Completed)
+**狀態**: 修復完成與最終驗證 (Bug Fix & Final Verification Completed)
 
 ## 今日進度
 
@@ -14,19 +14,24 @@
 - **捲軸管理 (US2)**: 移除高度限制，啟用 body 層級的垂直捲軸與自定義橫向捲軸，確保 1200px 以下可流暢移動。
 - **固定頁首 (US3)**: 實作 `position: sticky` 頁首，並優化 Glassmorphism 效果與 `backdrop-filter` 模糊度。
 
-### 3. 測試與驗證 (Testing & Validation)
-- **單元測試**: 執行 `vitest` 通過所有佈局測試項目，確認 2:3 比例誤差 < 1%。
-- **實作回顧**: 生成 `retrospective.md`，確認 100% 符合需求規格 (FR-001 至 FR-006) 且無架構偏離。
-- **安全性掃描**: 執行 `scan-secrets` 確認無任何敏感資訊洩漏。
+### 3. 問題修復 (Bug Fixes)
+- **低解析度捲軸修正 (T026)**: 針對使用者回報在 640x800 解析度下未出現捲軸的問題，診斷出 `style.css` 中的全域 `body` 樣式 (`overflow: hidden` 與 `flex` 置中) 導致內容裁切。
+- **實作覆寫**: 在 `admin.html` 中強制設定 `body.admin-page` 為 `overflow: auto !important` 與 `display: block !important`，確保在視窗寬度低於內容最小寬度（1200px）時能正確觸發捲軸。
 
-### 4. 治理與記錄 (Governance)
+### 4. 測試與驗證 (Testing & Validation)
+- **針對性測試**: 建立並執行 `tests/unit/scrollbar-fix.test.js`，驗證樣式覆寫是否正確寫入。
+- **單元測試**: 執行 `vitest` 通過所有佈局測試項目，確認 2:3 比例誤差 < 1%。
+- **實作回顧**: 更新 `tasks.md` 並生成 `retrospective.md`，確認 100% 符合需求規格且無架構偏離。
+
+### 5. 治理與記錄 (Governance)
 - 遵循專案憲法，所有變更均已提交至 Git 分支，並保持正體中文文件撰寫。
 - 使用 CSS 變數維護佈局參數，確保後續維護的一致性。
 
 ## 完成摘要
-- **任務完成率**: 100% (25/25)
+- **任務完成率**: 100% (26/26)
 - **需求覆蓋率**: 100%
 - **品質目標**: 通過所有自動化測試並符合憲法規範。
 
 ## 下一步計劃
-- 任務已圓滿完成，準備交付並等待後續功能整合指示。
+- 此功能模組已完整交付並完成 Bug 修復。
+- 持續觀察在不同瀏覽器環境下的捲軸相容性。
