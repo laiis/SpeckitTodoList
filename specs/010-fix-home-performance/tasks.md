@@ -3,7 +3,7 @@
 **輸入**: 來自 `/specs/010-fix-home-performance/` 的設計文件
 **先決條件**: plan.md (必要), spec.md (使用者故事必要), research.md, data-model.md, contracts/
 
-**測試**: 測試為選填項目。根據規格，我們將為核心邏輯（Logger、性能偵測）增加單元測試。
+**測試**: **強制執行**。根據專案憲法，所有新增的業務邏輯必須具備單元測試，且覆蓋率應達 80% 以上。
 
 **組織方式**: 任務按使用者故事分組，以實現每個故事的獨立開發與測試。
 
@@ -20,7 +20,7 @@
 **目的**: 專案初始化與基礎結構建立
 
 - [ ] T001 初始化 specs/010-fix-home-performance/ 中的功能文件結構
-- [ ] T002 [P] 在 services/logger.js 建立前端日誌服務檔案
+- [ ] T002 [P] 建立基礎服務檔案：`services/logger.js` 與 `services/performanceService.js`
 
 ---
 
@@ -48,9 +48,9 @@
 
 - [ ] T006 [P] [US1] 在 style.css 新增性能模式 CSS 類別與變數（覆寫模糊/裝飾圓圈）
 - [ ] T007 [P] [US1] 在 index.html 新增「性能模式」切換 UI 元素與 ID
-- [ ] T008 [US1] 在 script.js 實作硬體偵測 (`navigator.deviceMemory`) 與提示邏輯
-- [ ] T009 [US1] 在 script.js 實作使用 `localStorage` 持久化 `PerformanceSettings` 的邏輯
-- [ ] T010 [US1] 在 script.js 實作「性能模式」切換邏輯（CSS 類別切換與狀態持久化）
+- [ ] T008 [US1] 在 `services/performanceService.js` 實作硬體偵測 (`navigator.deviceMemory`)、LocalStorage 持久化與性能狀態管理邏輯
+- [ ] T008a [US1] 在 `tests/unit/performanceService.test.js` 實作性能服務的單元測試
+- [ ] T009 [US1] 在 `script.js` 整合 `performanceService` 以顯示提示並切換性能模式 CSS 類別
 - [ ] T011 [US1] 在 script.js 優化 `renderKanban` 以使用 `DocumentFragment`，減少 Layout Thrashing
 - [ ] T012 [US1] 在 script.js 增加包含 TBT 與記憶體指標的 `PERF:LOAD` 日誌記錄
 

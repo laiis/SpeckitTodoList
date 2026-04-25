@@ -48,9 +48,10 @@ specs/010-fix-home-performance/
 ```text
 index.html               # 首頁結構優化
 style.css                # 新增性能模式樣式
-script.js                # 優化渲染邏輯、事件委派與性能模式切換
+script.js                # UI 互動邏輯與整合效能服務
 services/
-└── taskService.js       # 確保資料存取效能
+├── taskService.js       # 確保資料存取效能
+└── performanceService.js # 封裝硬體偵測、性能狀態與持久化邏輯
 server/
 └── utils/
     └── logger.js        # 參考其實現以實作前端 Logger 介面

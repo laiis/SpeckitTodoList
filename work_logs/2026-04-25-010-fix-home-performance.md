@@ -1,7 +1,7 @@
 # 工作日誌：首頁性能優化 (010-fix-home-performance)
 
 **日期**: 2026-04-25  
-**狀態**: 已完成研究與設計，準備進入開發階段
+**狀態**: 已完成規格分析與合規性修正，準備進入開發階段
 
 ## 今日進度
 
@@ -20,14 +20,21 @@
 - 在 `contracts/performance-logs.md` 規範了 `PERF:LOAD` 與 `PERF:LONGTASK` 等日誌合約。
 - 提供了 `quickstart.md` 供開發者快速理解事件委派與性能模式的實作模式。
 
-### 4. 任務分解 (Task Generation)
-- 生成了完整的任務清單 `tasks.md`，共計 20 個任務，並已轉換為符合規範的正體中文。
+### 4. 規格分析與自動修補 (Specification Analysis & Remediation)
+- 執行了 `/speckit.analyze` 對 `spec.md`, `plan.md` 與 `tasks.md` 進行一致性檢查。
+- **識別並修正了關鍵憲法衝突**：
+    - **測試合規性 (CRITICAL)**：原任務清單將測試標記為選填，已修正為**強制執行**，並新增了 `performanceService` 的單元測試任務 (T008a)。
+    - **架構封裝 (HIGH)**：原計畫將過多邏輯塞入 `script.js`，已修正為引入 `services/performanceService.js` 進行職責分離。
+- 統一了術語規範，確保所有文件一致使用「性能模式」 (Performance Mode)。
+
+### 5. 任務分解 (Task Generation)
+- 生成並更新了完整的任務清單 `tasks.md`，共計 21 個任務，符合專案憲法之測試與 Service 層規範。
 - 任務結構分為：設定、基礎建設、US1 (MVP)、US2 (互動優化) 與最終修飾階段。
 
 ## 下一步計畫
 - 執行 `/speckit.implement` 開始開發。
-- 優先實作 `services/logger.js` 以建立可觀測性基礎。
+- 優先實作 `services/logger.js` 與 `services/performanceService.js` 以建立基礎設施。
 - 接著開發 US1，解決使用者回報的首頁加載 lag 問題。
 
 ---
-**備註**: 所有文件均符合專案憲法之語言與治理規範。
+**備註**: 所有文件均已通過 `/speckit.analyze` 驗證，符合專案憲法之語言、架構與測試規範。
