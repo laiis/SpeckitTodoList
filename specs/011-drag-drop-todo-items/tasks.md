@@ -17,9 +17,9 @@
 
 **Purpose**: 專案初始化與基礎結構設定
 
-- [ ] T001 安裝 SortableJS 依賴項 `npm install sortablejs`
-- [ ] T002 [P] 在 `style.css` 中定義拖拉相關的基礎 CSS 類別 (如 `.drag-ghost`, `.drag-chosen`)
-- [ ] T003 [P] 驗證 Vitest 測試環境是否正常執行 `npm test`
+- [x] T001 安裝 SortableJS 依賴項 `npm install sortablejs`
+- [x] T002 [P] 在 `style.css` 中定義拖拉相關的基礎 CSS 類別 (如 `.drag-ghost`, `.drag-chosen`)
+- [x] T003 [P] 驗證 Vitest 測試環境是否正常執行 `npm test`
 
 ---
 
@@ -29,11 +29,11 @@
 
 **⚠️ CRITICAL**: 在此階段完成前，不可開始使用者故事的工作
 
-- [ ] T004 更新資料庫 Schema，在 `server/db/init.js` 中為 `tasks` 資料表新增 `rank` (REAL) 欄位
-- [ ] T005 撰寫資料庫遷移指令，為現有任務初始化 `rank` 值（如按 ID 遞增排序賦值）
-- [ ] T006 更新 `server/services/taskService.js` 以支援 `rank` 欄位的讀取與基本賦值，並確保符合憲法 V 的日誌格式
-- [ ] T007 在 `tests/unit/taskService.test.js` 中新增全面單元測試，驗證 Rank 計算（平均值、邊際精度處理）與狀態更新邏輯，確保 Service 層覆蓋率 > 80%
-- [ ] T008 [P] 設定 API 路由基礎結構，確保 `server/routes/tasks.js` 準備好接受 PATCH 請求，並實作符合憲法 V 的日誌記錄
+- [x] T004 更新資料庫 Schema，在 `server/db/init.js` 中為 `tasks` 資料表新增 `rank` (REAL) 欄位
+- [x] T005 撰寫資料庫遷移指令，為現有任務初始化 `rank` 值（如按 ID 遞增排序賦值）
+- [x] T006 更新 `server/services/taskService.js` 以支援 `rank` 欄位的讀取與基本賦值，並確保符合憲法 V 的日誌格式
+- [x] T007 在 `tests/unit/taskService.test.js` 中新增全面單元測試，驗證 Rank 計算（平均值、邊際精度處理）與狀態更新邏輯，確保 Service 層覆蓋率 > 80%
+- [x] T008 [P] 設定 API 路由基礎結構，確保 `server/routes/tasks.js` 準備好接受 PATCH 請求，並實作符合憲法 V 的日誌記錄
 
 **Checkpoint**: 基礎設施已就緒 - 現在可以並行開始使用者故事的實作
 
@@ -49,16 +49,16 @@
 
 > **注意：先撰寫這些測試，確保在實作前測試失敗**
 
-- [ ] T009 [P] [US1] 在 `tests/integration/tasks.test.js` 中撰寫 `PATCH /api/tasks/:id` 的集成測試，驗證狀態與 Rank 更新
-- [ ] T010 [US1] 在 `tests/e2e/drag_drop.test.js` (或現有 UI 測試) 中撰寫基礎拖拉互動測試腳本
+- [x] T009 [P] [US1] 在 `tests/integration/tasks.test.js` 中撰寫 `PATCH /api/tasks/:id` 的集成測試，驗證狀態與 Rank 更新
+- [x] T010 [US1] 在 `tests/e2e/drag_drop.test.js` (或現有 UI 測試) 中撰寫基礎拖拉互動測試腳本
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] 在 `server/services/taskService.js` 中實作更新任務狀態與 Rank 的業務邏輯
-- [ ] T012 [US1] 在 `server/routes/tasks.js` 中實作 `PATCH /api/tasks/:id` 路由端點
-- [ ] T013 [US1] 在 `script.js` 中初始化 SortableJS，並連結各個狀態河道 (Lanes)
-- [ ] T014 [US1] 在 `script.js` 的 `onEnd` 回調中實作 API 呼叫，將新的狀態與 Rank 傳送至後端
-- [ ] T015 [US1] 在 `script.js` 中處理 API 回傳結果，若失敗則提示使用者並將卡片復原至原始位置 (Visual Undo)
+- [x] T011 [US1] 在 `server/services/taskService.js` 中實作更新任務狀態與 Rank 的業務邏輯
+- [x] T012 [US1] 在 `server/routes/tasks.js` 中實作 `PATCH /api/tasks/:id` 路由端點
+- [x] T013 [US1] 在 `script.js` 中初始化 SortableJS，並連結各個狀態河道 (Lanes)
+- [x] T014 [US1] 在 `script.js` 的 `onEnd` 回調中實作 API 呼叫，將新的狀態與 Rank 傳送至後端
+- [x] T015 [US1] 在 `script.js` 中處理 API 回傳結果，若失敗則提示使用者並將卡片復原至原始位置 (Visual Undo)
 
 **Checkpoint**: 此時，使用者故事 1 應能獨立運作且可被測試
 
@@ -72,8 +72,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T016 [P] [US2] 在 `style.css` 中完善 `.drag-ghost` (佔位符) 與 `.drag-chosen` (選中項) 的視覺樣式
-- [ ] T017 [US2] 在 `script.js` 的 SortableJS 初始化設定中加入 `ghostClass` 與 `chosenClass` 配置
+- [x] T016 [P] [US2] 在 `style.css` 中完善 `.drag-ghost` (佔位符) 與 `.drag-chosen` (選中項) 的視覺樣式
+- [x] T017 [US2] 在 `script.js` 的 SortableJS 初始化設定中加入 `ghostClass` 與 `chosenClass` 配置
 
 **Checkpoint**: 使用者故事 1 與 2 現在應該都能獨立運作
 
@@ -87,8 +87,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T018 [US3] 確保 `server/services/taskService.js` 的 Rank 計算邏輯能正確處理同河道內的排序變更
-- [ ] T019 [US3] 驗證 `script.js` 中的 SortableJS 配置允許在同一個 group 內重排
+- [x] T018 [US3] 確保 `server/services/taskService.js` 的 Rank 計算邏輯能正確處理同河道內的排序變更
+- [x] T019 [US3] 驗證 `script.js` 中的 SortableJS 配置允許在同一個 group 內重排
 
 **Checkpoint**: 所有使用者故事現在都應具備獨立功能
 
@@ -98,10 +98,10 @@
 
 **Purpose**: 影響多個使用者故事的優化項
 
-- [ ] T020 [P] 在 `script.js` 的 SortableJS 配置中啟用 `scroll: true` 以支援自動捲動
-- [ ] T021 程式碼清理與重構，確保符合 JavaScript 編碼慣例
-- [ ] T022 [P] 執行 `quickstart.md` 中的驗證流程
-- [ ] T023 [P] 更新 `README.md` 或相關文件，說明新的拖拉操作功能
+- [x] T020 [P] 在 `script.js` 的 SortableJS 配置中啟用 `scroll: true` 以支援自動捲動
+- [x] T021 程式碼清理與重構，確保符合 JavaScript 編碼慣例
+- [x] T022 [P] 執行 `quickstart.md` 中的驗證流程
+- [x] T023 [P] 更新 `README.md` 或相關文件，說明新的拖拉操作功能
 
 ---
 

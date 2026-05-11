@@ -122,4 +122,48 @@ describe('TaskService - Rank & Ordering (T007)', () => {
     const dbTask = db.prepare('SELECT rank FROM tasks WHERE id = ?').get(task.id);
     expect(dbTask.rank).toBe(originalRank);
   });
+
+  it('應能處理極小差距的 rank 計算 (邊際精度模擬)', async () => {
+    // 模擬多次在兩者之間插入導致 rank 差距極小
+    const t1 = await taskService.createTask(USER_ID, 'Task 1'); // 1.0
+    const t2 = await taskService.createTask(USER_ID, 'Task 2'); // 2.0
+    
+    let prevRank = t1.rank;
+    let nextRank = t2.rank;
+    let lastTask;
+
+    // 進行 50 次中間插入 (1.0 到 2.0 之間)
+    // 每次差距縮小一半，50 次約為 2^-50，接近 Float64 精度極限
+    for (let i = 0; i < 50; i++) {
+      const midRank = (prevRank + nextRank) / 2;
+      lastTask = await taskService.createTask(USER_ID, `Mid ${i}`);
+      await taskService.updateTask(USER_ID, lastTask.id, { rank: midRank });
+      nextRank = midRank; // 始終在 t1 和最新的 mid 之間插入
+    }
+
+    const tasks = await taskService.getTasks(USER_ID);
+    // 驗證排序依然正確
+    expect(tasks[0].id).toBe(t1.id);
+    expect(tasks[1].id).toBe(lastTask.id);
+    expect(tasks[tasks.length - 1].id).toBe(t2.id);
+    
+    // 檢查最後一個插入的 rank 是否大於 t1.rank
+    expect(lastTask.rank).toBeGreaterThan(t1.rank);
+  });
+
+  it('同河道內重排應能正確儲存並讀取', async () => {
+    const t1 = await taskService.createTask(USER_ID, 'A'); // 1.0
+    const t2 = await taskService.createTask(USER_ID, 'B'); // 2.0
+    const t3 = await taskService.createTask(USER_ID, 'C'); // 3.0
+
+    // 將 C 移到 A 和 B 之間
+    const newRank = (t1.rank + t2.rank) / 2; // 1.5
+    await taskService.updateTask(USER_ID, t3.id, { rank: newRank });
+
+    const tasks = await taskService.getTasks(USER_ID);
+    expect(tasks[0].content).toBe('A');
+    expect(tasks[1].content).toBe('C');
+    expect(tasks[2].content).toBe('B');
+    expect(tasks[1].rank).toBe(1.5);
+  });
 });
