@@ -78,3 +78,48 @@ describe('TaskService - Data Isolation', () => {
     expect(dbTask.content).toBe(multiLineContent);
   });
 });
+
+describe('TaskService - Rank & Ordering (T007)', () => {
+  const USER_ID = 300;
+
+  beforeEach(() => {
+    db.prepare('DELETE FROM tasks').run();
+    db.prepare('INSERT OR IGNORE INTO users (id, username, password_hash, role_id) VALUES (?, ?, ?, ?)')
+      .run(USER_ID, 'testrank', 'hash', 3);
+  });
+
+  it('建立任務時應自動遞增 rank', async () => {
+    const task1 = await taskService.createTask(USER_ID, 'First');
+    const task2 = await taskService.createTask(USER_ID, 'Second');
+
+    expect(task1.rank).toBe(1.0);
+    expect(task2.rank).toBe(2.0);
+  });
+
+  it('應按 rank 昇冪排序取得任務', async () => {
+    await taskService.createTask(USER_ID, 'Task 1'); // rank 1.0
+    const task2 = await taskService.createTask(USER_ID, 'Task 2'); // rank 2.0
+    await taskService.createTask(USER_ID, 'Task 3'); // rank 3.0
+
+    // 手動將 task 2 的 rank 改為 0.5 (排到最前面)
+    await taskService.updateTask(USER_ID, task2.id, { rank: 0.5 });
+
+    const tasks = await taskService.getTasks(USER_ID);
+    expect(tasks).toHaveLength(3);
+    expect(tasks[0].id).toBe(task2.id);
+    expect(tasks[0].rank).toBe(0.5);
+    expect(tasks[1].content).toBe('Task 1');
+    expect(tasks[2].content).toBe('Task 3');
+  });
+
+  it('更新任務狀態時應保留 rank', async () => {
+    const task = await taskService.createTask(USER_ID, 'Task', 'todo');
+    const originalRank = task.rank;
+
+    const updatedTask = await taskService.updateTask(USER_ID, task.id, { status: 'doing' });
+    expect(updatedTask.status).toBe('doing');
+    
+    const dbTask = db.prepare('SELECT rank FROM tasks WHERE id = ?').get(task.id);
+    expect(dbTask.rank).toBe(originalRank);
+  });
+});

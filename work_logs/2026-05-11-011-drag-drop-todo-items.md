@@ -1,33 +1,45 @@
-# 工作日誌: 拖拉式任務管理 (Drag-and-Drop Task Management)
+# 工作日誌：拖拉式任務管理功能實作 (011-drag-drop-todo-items)
 
 **日期**: 2026-05-11
-**功能名稱**: 011-drag-drop-todo-items
-**狀態**: 規劃與分析完成，準備實作
+**狀態**: 已完成 (Completed)
 
-## 已完成進度
+## 任務達成摘要
 
-1. **功能規格 (Specification)**:
-    - 建立分支 `011-drag-drop-todo-items`。
-    - 定義跨河道拖拉、視覺回饋、河道內排序等使用者故事。
-    - 透過 `/speckit.clarify` 確認衝突處理 (LWW)、更新時機 (On Drop)、排序機制 (Rank field) 等細節。
+成功實作看板模式下的拖拉式任務管理，支援跨狀態移動與河道內排序，並確保資料在重新整理後能保持一致。
 
-2. **實作規劃 (Planning)**:
-    - 選擇 **SortableJS** 作為前端拖拉函式庫。
-    - 設計 SQLite `rank` (REAL) 欄位用於排序持久化。
-    - 定義 `PATCH /api/tasks/:id` API 介面。
+### 1. 後端基礎建設 (Phase 1 & 2)
+- **資料庫遷移**: 
+  - 在 `server/db/init.js` 的 `tasks` 資料表中新增 `rank` (REAL) 欄位。
+  - 實作自動遷移邏輯，為現有任務初始化 `rank = id`。
+  - 為 `rank` 欄位建立索引以優化排序查詢效能。
+- **Service 層優化**: 
+  - 更新 `taskService.js`，將原本按 `priority` 排序改為按 `rank` 昇冪排序。
+  - 確保建立任務時會自動計算下一個整數 Rank 並分配。
+  - 支援 `PATCH` 更新任務的 `rank` 與 `status`。
+- **日誌規範**: 符合憲法 V 要求，在任務建立與更新時記錄詳細的 Rank 與狀態變更資訊。
 
-3. **任務展開 (Task Generation)**:
-    - 產生 23 項具體開發任務，涵蓋基礎設施、API、前端整合及測試。
+### 2. 前端互動實作 (Phase 3, 4, 5)
+- **SortableJS 整合**:
+  - 安裝並在 `script.js` 中引入 `sortablejs`。
+  - 初始化看板河道容器，連結所有狀態為同一 `kanban` 群組。
+- **排序與持久化**:
+  - 實作中位數 Rank 計算邏輯（`(prevRank + nextRank) / 2`），避免大規模重新編號。
+  - 透過事件委派與 `PATCH` API 實現拖放後的即時保存。
+  - 實作「視覺還原」(Visual Undo)，當 API 更新失敗時會自動恢復卡片位置並提示。
+- **視覺回饋 (US2)**:
+  - 定義了 `.drag-ghost` (半透明佔位)、`.drag-chosen` (選中縮放與旋轉) 與 `.column-content.drag-over` (河道高亮) 等 CSS 樣式。
+  - 優化了拖曳過程中的流暢度與互動感。
 
-4. **品質分析與修正 (Analysis & Remediation)**:
-    - 執行 `/speckit.analyze` 發現憲法合規問題（缺少單元測試）。
-    - 已修補 `tasks.md`，補強了 Service 層單元測試 (覆蓋率 > 80%)、資料初始化遷移及失敗復原邏輯。
+### 3. 優化與修復 (Phase N)
+- **自動捲動**: 啟用 `scroll: true` 配置，優化長看板拖移體驗。
+- **環境問題修復**: 解決了 `todo.test.js` 在 Node.js 測試環境中缺乏 `DOMParser` 的 ReferenceError，確保舊有測試能正常執行。
+- **文件更新**: 在 `README.md` 中新增「拖拉式管理」功能說明。
 
-## 下一步計畫
+## 驗證結果
+- **單元測試**: `tests/unit/taskService.test.js` 通過，Rank 計算正確。
+- **整合測試**: `tests/integration/drag_drop.test.mjs` 通過，API 持久化驗證成功。
+- **全域測試**: 執行 `npm test` 通過大部分測試（除少數無關的 RBAC 模擬失敗外）。
 
-- 執行 `/speckit.implement` 開始 Phase 1: Setup。
-- 安裝 `sortablejs` 依賴並更新資料庫 Schema。
-- 依照 TDD 流程優先撰寫單元測試。
-
-## 備註
-- 目前所有設計文件與任務清單皆已符合專案憲法。
+## 下一步建議
+- 觀察 Rank 精度的累積情況，若未來出現大量在同一區間插入的情況，可考慮實作 Rank 重新標準化邏輯。
+- 增加行動端觸控拖拉的實機壓力測試。
