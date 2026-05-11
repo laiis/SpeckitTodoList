@@ -9,6 +9,7 @@ const dom = new JSDOM('<!DOCTYPE html><html><body><div id="kanban-container"></d
 vi.stubGlobal('window', dom.window);
 vi.stubGlobal('document', dom.window.document);
 vi.stubGlobal('navigator', dom.window.navigator);
+vi.stubGlobal('DOMParser', dom.window.DOMParser);
 vi.stubGlobal('sessionStorage', {
     getItem: vi.fn(),
     setItem: vi.fn(),

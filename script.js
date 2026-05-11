@@ -2,6 +2,7 @@ import { authService } from './services/auth.js';
 import { taskService } from './services/taskService.js';
 import logger from './services/logger.js';
 import performanceService from './services/performanceService.js';
+import Sortable from 'sortablejs';
 
 // T004: 封裝 requestAnimationFrame 基礎同步函數以確保 60fps 效能
 const UISync = {
@@ -101,13 +102,8 @@ export class TodoService {
     }
 
     sortTodos() {
-        // 按 priority 昇冪 (1 高 > 2 中 > 3 低) 及 created_at 降冪 (新 > 舊) 排序 (FR-010)
-        this.todos.sort((a, b) => {
-            if (a.priority !== b.priority) {
-                return (a.priority || 2) - (b.priority || 2);
-            }
-            return new Date(b.created_at) - new Date(a.created_at);
-        });
+        // T018: 改為按 rank 昇冪排序，這將支援拖拉後的持久化順序
+        this.todos.sort((a, b) => (a.rank || 0) - (b.rank || 0));
     }
 
     getTasksByStatus(status) {
@@ -514,6 +510,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         kanbanContainer.innerHTML = '';
         kanbanContainer.appendChild(fragment);
 
+        // T013: 初始化拖拉功能
+        initDragAndDrop();
+
         if (currentFilter === 'active') {
             const todoColumn = kanbanContainer.querySelector(`.status-${TodoService.Status.TODO}`);
             if (todoColumn) {
@@ -760,6 +759,85 @@ document.addEventListener('DOMContentLoaded', async () => {
             await todoService.clearCompleted();
             render();
         });
+    }
+
+    /**
+     * T013: 初始化拖拉功能 (SortableJS)
+     */
+    function initDragAndDrop() {
+        const columns = document.querySelectorAll('.column-content');
+        columns.forEach(el => {
+            Sortable.create(el, {
+                group: 'kanban',
+                animation: 150,
+                ghostClass: 'drag-ghost',
+                chosenClass: 'drag-chosen',
+                scroll: true, // T020: 啟用自動捲動
+                bubbleScroll: true,
+                onEnd: async (evt) => {
+                    const { item, from, to, newIndex, oldIndex } = evt;
+                    // 如果位置沒變則不處理
+                    if (from === to && newIndex === oldIndex) return;
+
+                    const taskId = parseInt(item.dataset.id);
+                    const newStatus = to.closest('.kanban-column').dataset.status;
+                    
+                    // T014: 計算新的 Rank
+                    const newRank = calculateNewRank(to, newIndex);
+                    
+                    try {
+                        const result = await todoService.updateTask(taskId, { status: newStatus, rank: newRank });
+                        if (!result) throw new Error('Update failed');
+                        // 更新成功，重新渲染以確保資料同步
+                        render(); 
+                    } catch (error) {
+                        logger.error(`Drag-drop failed: ${error.message}`);
+                        // T015: 視覺還原 (Visual Undo)
+                        render();
+                        alert('更新失敗，已還原任務位置');
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * T014: 根據拖放後的新位置計算 Rank
+     */
+    function calculateNewRank(container, newIndex) {
+        const items = Array.from(container.querySelectorAll('.todo-item'));
+        const totalItems = items.length;
+        
+        const getTaskRank = (el) => {
+            if (!el) return null;
+            const t = todoService.getTodos().find(task => task.id === parseInt(el.dataset.id));
+            return t ? t.rank : null;
+        };
+
+        if (totalItems <= 1) return 1.0;
+
+        if (newIndex === 0) {
+            // 移到最上方：下一個項目的 rank - 1.0
+            const nextRank = getTaskRank(items[1]);
+            return (nextRank !== null) ? nextRank - 1.0 : 0.0;
+        } else if (newIndex === totalItems - 1) {
+            // 移到最下方：上一個項目的 rank + 1.0
+            const prevRank = getTaskRank(items[totalItems - 2]);
+            return (prevRank !== null) ? prevRank + 1.0 : 1.0;
+        } else {
+            // 移到兩者之間：(前一個 + 後一個) / 2
+            const prevRank = getTaskRank(items[newIndex - 1]);
+            const nextRank = getTaskRank(items[newIndex + 1]);
+            
+            if (prevRank !== null && nextRank !== null) {
+                return (prevRank + nextRank) / 2;
+            } else if (prevRank !== null) {
+                return prevRank + 1.0;
+            } else if (nextRank !== null) {
+                return nextRank - 1.0;
+            }
+            return 1.0;
+        }
     }
 
     await init();

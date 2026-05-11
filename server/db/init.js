@@ -54,6 +54,7 @@ function initSchema() {
       priority INTEGER DEFAULT 2,
       due_date DATE,
       start_date DATE,
+      rank REAL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users (id)
     )
@@ -86,8 +87,17 @@ function initSchema() {
     logger.info('Added start_date column to tasks table.');
   }
 
+  const hasRank = tableInfo.some(col => col.name === 'rank');
+  if (!hasRank) {
+    db.prepare("ALTER TABLE tasks ADD COLUMN rank REAL").run();
+    // T005: 初始化現有任務的 rank 值
+    db.prepare("UPDATE tasks SET rank = CAST(id AS REAL)").run();
+    logger.info('Added rank column to tasks table and initialized values.');
+  }
+
   // 建立索引以優化資料隔離查詢 (SC-001)
   db.prepare(`CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id)`).run();
+  db.prepare(`CREATE INDEX IF NOT EXISTS idx_tasks_rank ON tasks(rank)`).run();
 }
 
 /**
