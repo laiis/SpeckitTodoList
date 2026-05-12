@@ -20,13 +20,13 @@ const taskService = {
    * @param {number} userId 
    */
   async getTasks(userId) {
-    // 按 priority 昇冪 (1 高 > 2 中 > 3 低) 及 created_at 降冪 (新 > 舊) 排序 (FR-010)
-    return db.prepare('SELECT * FROM tasks WHERE user_id = ? ORDER BY priority ASC, created_at DESC')
+    // 按 rank 昇冪排序 (T006)
+    return db.prepare('SELECT * FROM tasks WHERE user_id = ? ORDER BY rank ASC')
       .all(userId);
   },
 
   /**
-   * 建立新任務 (FR-012, FR-009, FR-011, US8)
+   * 建立新任務 (FR-012, FR-009, FR-011, US8, T006)
    * @param {number} userId 
    * @param {string} content 
    * @param {string} status 
@@ -36,8 +36,14 @@ const taskService = {
    */
   async createTask(userId, content, status = 'todo', priority = 2, dueDate = null, startDate = null) {
     const sanitizedContent = escapeHTML(content);
-    const result = db.prepare('INSERT INTO tasks (user_id, content, status, priority, due_date, start_date) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(userId, sanitizedContent, status, priority, dueDate, startDate);
+    
+    // T006: 取得目前該使用者的最大 rank，新任務放在最後
+    const maxRankRow = db.prepare('SELECT MAX(rank) as maxRank FROM tasks WHERE user_id = ?')
+      .get(userId);
+    const nextRank = (maxRankRow && maxRankRow.maxRank !== null) ? maxRankRow.maxRank + 1.0 : 1.0;
+
+    const result = db.prepare('INSERT INTO tasks (user_id, content, status, priority, due_date, start_date, rank) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(userId, sanitizedContent, status, priority, dueDate, startDate, nextRank);
     
     const newTask = {
       id: result.lastInsertRowid,
@@ -46,21 +52,22 @@ const taskService = {
       user_id: userId,
       priority,
       due_date: dueDate,
-      start_date: startDate
+      start_date: startDate,
+      rank: nextRank
     };
 
-    logger.info(`Task created: [ID: ${newTask.id}] by [User: ${userId}]. Priority: ${priority}. Start: ${startDate}. Due: ${dueDate}. Content: ${sanitizedContent.substring(0, 50)}${sanitizedContent.length > 50 ? '...' : ''}`);
+    logger.info(`Task created: [ID: ${newTask.id}] by [User: ${userId}]. Priority: ${priority}. Rank: ${nextRank}. Content: ${sanitizedContent.substring(0, 50)}${sanitizedContent.length > 50 ? '...' : ''}`);
     return newTask;
   },
 
   /**
-   * 更新任務內容或狀態 (FR-012, FR-009, FR-011, US8)
+   * 更新任務內容或狀態 (FR-012, FR-009, FR-011, US8, T006)
    * @param {number} userId 
    * @param {number} taskId 
    * @param {Object} updates 
    */
   async updateTask(userId, taskId, updates) {
-    const { content, status, priority, due_date, start_date } = updates;
+    const { content, status, priority, due_date, start_date, rank } = updates;
     const sanitizedContent = content !== undefined ? escapeHTML(content) : undefined;
     
     // 確保任務屬於該使用者 (資料隔離)
@@ -94,6 +101,10 @@ const taskService = {
     if (start_date !== undefined) {
       updateClauses.push('start_date = ?');
       params.push(start_date);
+    }
+    if (rank !== undefined) {
+      updateClauses.push('rank = ?');
+      params.push(rank);
     }
 
     if (updateClauses.length > 0) {

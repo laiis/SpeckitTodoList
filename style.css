@@ -900,3 +900,29 @@ body.dark-mode .status-running .status-select {
     color: var(--text-muted);
 }
 
+/* SortableJS Styles (T002, T016) */
+.drag-ghost {
+    opacity: 0.2;
+    background-color: var(--primary-color) !important;
+    border: 2px dashed var(--primary-color) !important;
+    border-radius: 12px;
+    box-shadow: none !important;
+}
+
+.drag-chosen {
+    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.3) !important;
+    transform: scale(1.04) rotate(2deg);
+    cursor: grabbing !important;
+    z-index: 1000;
+}
+
+.drag-fallback {
+    opacity: 1 !important;
+}
+
+.column-content.drag-over {
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 12px;
+    transition: background 0.3s ease;
+}
+
